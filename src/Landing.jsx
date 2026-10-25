@@ -365,7 +365,7 @@ export default function Landing({ onOpenTool }) {
             Your everyday digital toolbox
           </div>
 
-          <h1 className="max-w-2xl text-[clamp(3.1rem,6.6vw,6rem)] font-extrabold leading-[1.04] tracking-[-.065em] text-white">
+          <h1 className="max-w-2xl text-[clamp(2.3rem,4.5vw,4.5rem)] font-extrabold leading-[1.12] tracking-[-.045em] text-white">
             Everything you need.
             <span className="block bg-gradient-to-r from-cyan-300 via-sky-400 to-blue-500 bg-clip-text text-transparent">
               Nothing you don't.
