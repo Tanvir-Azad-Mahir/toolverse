@@ -10,7 +10,10 @@ import {
   KeyRound,
   Fingerprint,
   Binary,
+  CalendarDays,
+  FileImage,
 } from "lucide-react";
+
 
 export const tools = [
   {
@@ -83,6 +86,22 @@ export const tools = [
     icon: Binary,
     category: "Developer",
   },
+  
+{
+  id: "date",
+  name: "Date Calculator",
+  description: "Calculate date differences and add or subtract days.",
+  icon: CalendarDays,
+  category: "Calculators",
+},
+{
+  id: "imagetopdf",
+  name: "Image to PDF Converter",
+  description: "Combine multiple images into one downloadable PDF.",
+  icon: FileImage,
+  category: "Documents",
+},
+
 ];
 
 export const descriptions = {
@@ -136,6 +155,18 @@ export const descriptions = {
     title: "Base64 Encoder / Decoder",
     description: "Encode and decode Base64 text directly in your browser.",
   },
+  
+date: {
+  eyebrow: "CALCULATORS",
+  title: "Date Calculator",
+  description: "Find days between dates or calculate future and past dates.",
+},
+imagetopdf: {
+  eyebrow: "DOCUMENT TOOLS",
+  title: "Image to PDF Converter",
+  description: "Convert JPG, PNG, and WebP images into a single PDF.",
+},
+
 };
 
 export const categories = [
@@ -146,4 +177,5 @@ export const categories = [
   "Utilities",
   "Calculators",
   "Security",
+  "Documents",
 ];

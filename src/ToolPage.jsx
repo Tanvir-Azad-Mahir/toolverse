@@ -14,6 +14,8 @@ import TextCaseConverter from "./tools/TextCaseConverter";
 import PasswordGenerator from "./tools/PasswordGenerator";
 import UUIDGenerator from "./tools/UUIDGenerator";
 import Base64Converter from "./tools/Base64Converter";
+import DateCalculator from "./tools/DateCalculator";
+import ImageToPDF from "./tools/ImageToPDF";
 
 const toolComponents = {
   compress: ImageCompressor,
@@ -26,6 +28,8 @@ const toolComponents = {
   password: PasswordGenerator,
   uuid: UUIDGenerator,
   base64: Base64Converter,
+  date: DateCalculator,
+  imagetopdf: ImageToPDF,
 };
 
 export default function ToolPage({ id, onBack }) {
