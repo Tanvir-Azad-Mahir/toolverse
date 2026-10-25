@@ -1,0 +1,25 @@
+toolverse/
+|-- .gitignore
+|-- eslint.config.js
+|-- index.html
+|-- package.json
+|-- package-lock.json
+|-- README.md
+|-- vite.config.js
+|-- public/
+|   |-- log.png
+|   |-- log2.png
+|   |-- robots.txt
+|   `-- sitemap.xml
+`-- src/
+    |-- App.css
+    |-- App.jsx
+    |-- index.css
+    |-- main.jsx
+    |-- assets/
+    |   |-- hero.png
+    |   |-- react.svg
+    |   `-- vite.svg
+
+Generated and dependency folders (node_modules/, dist/, .git/, coverage/)
+are excluded.
