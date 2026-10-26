@@ -184,11 +184,11 @@ A growing collection of practical tools, designed to make everyday digital work 
 
 Made with care for the everyday web.
 
+</div>
+
 ## License
 
-ToolVerse is open-source software licensed under the
-[MIT License](LICENSE).
+ToolVerse is open-source software licensed under the [MIT License](LICENSE).
 
 Copyright © 2026 Tanvir Azad Mahir.
 
-</div>
