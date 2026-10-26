@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Sparkles,
@@ -8,7 +7,17 @@ import {
   Search,
   LockKeyhole,
   Zap,
+  ShieldCheck,
+  MousePointerClick,
+  Download,
+  Globe2,
+  Mail,
+  GitBranch,
+  HeartHandshake,
+  ArrowUpRight,
 } from "lucide-react";
+
+
 
 import { tools, categories } from "./toolData";
 
@@ -62,7 +71,7 @@ const stars = Array.from({ length: 65 }, (_, index) => ({
 
 function ToolGalaxy({ onOpenTool }) {
   return (
-    <div className="tv-galaxy relative mx-auto h-[390px] w-full max-w-[540px] select-none sm:h-[490px] lg:h-[550px]">
+    <div className="tv-galaxy relative mx-auto h-[585px] w-full max-w-[540px] min-w-0 select-none sm:h-[490px] lg:h-[550px]">
       {/* Animations */}
       <style>{`
         @keyframes tvOrbitOne {
@@ -125,6 +134,17 @@ function ToolGalaxy({ onOpenTool }) {
           }
         }
 
+        @keyframes tvNeonSweep {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes tvBorderGlow {
+          0%, 100% { box-shadow: 0 0 20px rgba(34,211,238,.08); }
+          50% { box-shadow: 0 0 34px rgba(34,211,238,.19); }
+        }
+        .tv-neon-border { animation: tvBorderGlow 5s ease-in-out infinite; }
+        .tv-shimmer { background-size: 200% 200%; animation: tvNeonSweep 7s ease-in-out infinite; }
         @keyframes tvHeroReveal {
           from {
             opacity: 0;
@@ -202,9 +222,27 @@ function ToolGalaxy({ onOpenTool }) {
         }
 
         @media (max-width: 639px) {
+          /* Reserve the top of the mobile galaxy for the orbit.
+             The 7 clickable shortcuts get their own grid below it. */
           .tv-galaxy-core {
             width: 92px;
             height: 92px;
+            top: 150px;
+          }
+          .tv-galaxy .tv-orbit {
+            top: 150px;
+          }
+          .tv-galaxy .tv-orbit-one {
+            width: min(82%, 285px);
+            height: 112px;
+          }
+          .tv-galaxy .tv-orbit-two {
+            width: min(90%, 315px);
+            height: 185px;
+          }
+          .tv-galaxy .tv-orbit-three {
+            width: 150px;
+            height: 150px;
           }
         }
 
@@ -215,7 +253,9 @@ function ToolGalaxy({ onOpenTool }) {
           .tv-floating-tool,
           .tv-galaxy-core,
           .tv-hero-reveal,
-          .tv-hero-reveal-delay {
+          .tv-hero-reveal-delay,
+          .tv-shimmer,
+          .tv-neon-border {
             animation: none !important;
           }
 
@@ -311,7 +351,7 @@ function ToolGalaxy({ onOpenTool }) {
         return (
           <div
             key={tool.id}
-            className="tv-floating-tool absolute z-20"
+            className="tv-floating-tool absolute z-20 hidden sm:block"
             style={{
               ...position,
               animationDelay: position.delay,
@@ -334,6 +374,27 @@ function ToolGalaxy({ onOpenTool }) {
           </div>
         );
       })}
+
+      {/* Mobile-only shortcuts: separate grid prevents orbital chips from overlapping. */}
+      <div className="absolute inset-x-0 top-[305px] z-20 grid grid-cols-2 gap-2.5 px-1 sm:hidden">
+        {tools.slice(0, 7).map((tool, index) => {
+          const Icon = tool.icon;
+          return (
+            <button
+              key={tool.id}
+              type="button"
+              onClick={() => onOpenTool(tool.id)}
+              className={`flex min-h-[54px] min-w-0 items-center gap-2 rounded-xl border border-cyan-300/20 bg-[#101e31]/95 px-3 py-2 text-left text-slate-200 shadow-[0_8px_25px_rgba(0,0,0,.28)] transition active:scale-[.98] focus-visible:outline-2 focus-visible:outline-cyan-400 ${index === 6 ? "col-span-2" : ""}`}
+              aria-label={`Open ${tool.name}`}
+            >
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-cyan-400/10 text-cyan-300">
+                <Icon size={17} />
+              </span>
+              <span className="min-w-0 text-[11px] font-semibold leading-4">{tool.name}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -355,30 +416,32 @@ export default function Landing({ onOpenTool }) {
   });
 
   return (
-    <main className="flex-1">
+    <main className="relative flex-1 overflow-hidden">
+      <div aria-hidden="true" className="pointer-events-none absolute left-[-180px] top-10 h-[460px] w-[460px] rounded-full bg-cyan-500/[.08] blur-[125px]" />
+      <div aria-hidden="true" className="pointer-events-none absolute right-[-170px] top-[700px] h-[440px] w-[440px] rounded-full bg-indigo-500/[.09] blur-[130px]" />
       {/* ================= HERO ================= */}
-      <section className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 pb-20 pt-16 sm:px-8 sm:pt-24 lg:grid-cols-[1.1fr_.9fr] lg:gap-10 lg:px-10 lg:pb-28 lg:pt-28">
+      <section className="relative mx-auto grid max-w-7xl items-center gap-4 px-5 pb-10 pt-12 sm:gap-8 sm:px-8 sm:pb-20 sm:pt-24 lg:grid-cols-[1.1fr_.9fr] lg:gap-10 lg:px-10 lg:pb-28 lg:pt-28">
         {/* Hero content */}
         <div className="tv-hero-reveal relative z-10 max-w-2xl">
-          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/[.07] px-4 py-2 text-xs font-medium text-cyan-200">
+          <div className="tv-neon-border mb-8 inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/[.07] px-4 py-2 text-xs font-medium text-cyan-200">
             <Sparkles size={14} />
             Your everyday digital toolbox
           </div>
 
-          <h1 className="max-w-2xl text-[clamp(2.3rem,4.5vw,4.5rem)] font-extrabold leading-[1.12] tracking-[-.045em] text-white">
+          <h1 className="max-w-2xl text-[clamp(2rem,4.5vw,4.5rem)] font-extrabold leading-[1.12] tracking-[-.045em] text-white">
             Everything you need.
-            <span className="block bg-gradient-to-r from-cyan-300 via-sky-400 to-blue-500 bg-clip-text text-transparent">
+            <span className="tv-shimmer block bg-gradient-to-r from-cyan-200 via-sky-400 to-violet-400 bg-clip-text text-transparent">
               Nothing you don't.
             </span>
           </h1>
 
-          <p className="mt-7 max-w-lg text-base leading-8 text-slate-400 sm:text-lg">
+          <p className="mt-6 max-w-lg text-sm leading-7 text-slate-400 sm:mt-7 sm:text-base sm:leading-8">
             Powerful little tools for your everyday workflow.
             Edit images, transform text, format code, and get things
             done — all in one place.
           </p>
 
-          <div className="mt-9 flex flex-wrap items-center gap-4">
+          <div className="mt-7 flex flex-wrap items-center gap-3 sm:mt-9 sm:gap-4">
             <a
               href="#tools"
               className="inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-6 py-3.5 text-sm font-bold text-slate-950 shadow-[0_10px_35px_rgba(34,211,238,.20)] transition duration-300 hover:-translate-y-1 hover:brightness-110"
@@ -392,7 +455,7 @@ export default function Landing({ onOpenTool }) {
             </span>
           </div>
 
-          <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-xs font-medium text-slate-400 sm:text-sm">
+          <div className="mt-7 flex flex-wrap gap-x-4 gap-y-3 text-xs font-medium text-slate-400 sm:mt-10 sm:gap-x-6 sm:text-sm">
             <span className="inline-flex items-center gap-2">
               <Check size={16} className="text-cyan-300" />
               No signup needed
@@ -419,7 +482,7 @@ export default function Landing({ onOpenTool }) {
       {/* ================= TOOL DIRECTORY ================= */}
       <section
         id="tools"
-        className="scroll-mt-24 border-t border-white/[.06] bg-[#0c121e]/50 py-20 sm:py-24"
+        className="scroll-mt-24 border-t border-white/[.06] bg-[#0c121e]/50 py-14 sm:py-24"
       >
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
           <div className="mb-9 flex flex-wrap items-end justify-between gap-6">
@@ -428,7 +491,7 @@ export default function Landing({ onOpenTool }) {
                 THE TOOLKIT
               </p>
 
-              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
+              <h2 className="text-2xl font-bold tracking-tight text-white sm:text-4xl">
                 Tools for every{" "}
                 <span className="text-cyan-300">
                   little task.
@@ -488,7 +551,7 @@ export default function Landing({ onOpenTool }) {
           </div>
 
           {/* Tool cards */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
             {filtered.map((tool) => {
               const Icon = tool.icon;
 
@@ -497,7 +560,7 @@ export default function Landing({ onOpenTool }) {
                   type="button"
                   key={tool.id}
                   onClick={() => onOpenTool(tool.id)}
-                  className="group relative flex min-h-[226px] flex-col items-start overflow-hidden rounded-[22px] border border-white/[.09] bg-gradient-to-br from-[#162132] to-[#101722] p-6 text-left shadow-[0_12px_25px_rgba(0,0,0,.12)] transition duration-300 hover:-translate-y-1.5 hover:border-cyan-300/40 hover:shadow-[0_20px_45px_rgba(0,0,0,.28)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400"
+                  className="group relative flex min-h-[200px] flex-col sm:min-h-[226px] items-start overflow-hidden rounded-[22px] border border-white/[.09] bg-gradient-to-br from-[#162132] to-[#101722] p-6 text-left shadow-[0_12px_25px_rgba(0,0,0,.12)] transition duration-300 hover:-translate-y-1.5 hover:border-cyan-300/60 hover:shadow-[0_0_30px_rgba(34,211,238,.13),0_20px_45px_rgba(0,0,0,.28)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400"
                 >
                   {/* Hover glow */}
                   <span className="pointer-events-none absolute -right-14 -top-14 h-36 w-36 rounded-full bg-cyan-400/[.045] blur-3xl transition duration-300 group-hover:scale-150 group-hover:bg-cyan-400/[.12]" />
@@ -511,7 +574,7 @@ export default function Landing({ onOpenTool }) {
                     {tool.category}
                   </span>
 
-                  <strong className="mb-2 text-lg font-semibold tracking-tight text-white">
+                  <strong className="mb-2 text-base font-semibold tracking-tight text-white">
                     {tool.name}
                   </strong>
 
@@ -555,10 +618,61 @@ export default function Landing({ onOpenTool }) {
         </div>
       </section>
 
+      {/* ================= BENEFITS ================= */}
+      <section id="features" className="relative scroll-mt-24 border-t border-white/[.06] px-5 py-14 sm:px-8 sm:py-24">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-2xl">
+            <p className="mb-3 text-[11px] font-bold uppercase tracking-[.22em] text-cyan-300">BUILT TO MAKE THINGS EASIER</p>
+            <h2 className="text-2xl font-bold tracking-tight text-white sm:text-4xl">Less switching tabs. <span className="text-cyan-300">More getting done.</span></h2>
+            <p className="mt-4 text-sm leading-7 text-slate-400">A growing collection of everyday tools, together in one lightweight workspace.</p>
+          </div>
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            {[
+              { icon: Zap, title: "Fast by design", text: "Open a tool and get started without an account or an elaborate setup." },
+              { icon: ShieldCheck, title: "Privacy-conscious", text: "Tools are designed to process data in your browser wherever possible." },
+              { icon: Globe2, title: "One place for more", text: "Images, writing, calculations, developer helpers and utilities together." },
+            ].map(({ icon: Icon, title, text }) => (
+              <div key={title} className="group relative overflow-hidden rounded-[22px] border border-white/10 bg-gradient-to-br from-[#14263a] to-[#0b1220] p-6 transition duration-300 hover:-translate-y-1 hover:border-cyan-400/40 hover:shadow-[0_0_35px_rgba(34,211,238,.09)]">
+                <span className="pointer-events-none absolute -right-16 -top-16 h-36 w-36 rounded-full bg-cyan-400/[.07] blur-3xl" />
+                <span className="mb-6 grid h-11 w-11 place-items-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300"><Icon size={21} /></span>
+                <h3 className="text-base font-semibold text-white">{title}</h3>
+                <p className="mt-3 text-sm leading-7 text-slate-400">{text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= HOW IT WORKS ================= */}
+      <section id="how-it-works" className="scroll-mt-24 border-y border-white/[.06] bg-[#0b1421]/75 px-5 py-14 sm:px-8 sm:py-24">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+            <div>
+              <p className="mb-3 text-[11px] font-bold tracking-[.22em] text-cyan-300">THREE SIMPLE STEPS</p>
+              <h2 className="text-2xl font-bold text-white sm:text-4xl">Your next task, <span className="text-sky-300">simplified.</span></h2>
+            </div>
+            <a href="#tools" className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-300 transition hover:text-white">Start exploring <ArrowRight size={16} /></a>
+          </div>
+          <div className="relative mt-10 grid gap-4 md:grid-cols-3">
+            {[
+              { number: "01", icon: Search, title: "Find a tool", text: "Search by keyword or browse a category to find what you need." },
+              { number: "02", icon: MousePointerClick, title: "Make it yours", text: "Add your text, numbers or files and adjust the settings." },
+              { number: "03", icon: Download, title: "Get your result", text: "Copy, use or download the output and get on with your day." },
+            ].map(({ number, icon: Icon, title, text }) => (
+              <div key={number} className="rounded-[22px] border border-white/10 bg-[#101b2b] p-6">
+                <div className="mb-8 flex items-start justify-between"><span className="text-3xl font-black tracking-tight text-cyan-400/25">{number}</span><Icon size={22} className="text-cyan-300" /></div>
+                <h3 className="text-base font-semibold text-white">{title}</h3>
+                <p className="mt-2 text-sm leading-7 text-slate-400">{text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ================= ABOUT ================= */}
       <section
         id="about"
-        className="scroll-mt-24 px-5 py-20 sm:px-8 sm:py-28"
+        className="scroll-mt-24 px-5 py-14 sm:px-8 sm:py-24"
       >
         <div className="mx-auto flex max-w-7xl flex-col gap-8 rounded-[28px] border border-white/10 bg-gradient-to-br from-[#172438] via-[#111b2b] to-[#0b1422] p-8 sm:p-12 md:flex-row md:items-center">
           <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl border border-cyan-300/20 bg-cyan-300/10 text-cyan-300">
@@ -570,7 +684,7 @@ export default function Landing({ onOpenTool }) {
               BUILT FOR EVERYDAY WORK
             </p>
 
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
               Simple by design.{" "}
               <span className="text-cyan-300">
                 Useful by default.
@@ -591,6 +705,25 @@ export default function Landing({ onOpenTool }) {
               size={70}
               strokeWidth={1}
             />
+          </div>
+        </div>
+      </section>
+
+      {/* ================= CONTACT & FEEDBACK ================= */}
+      <section id="contact" className="scroll-mt-24 px-5 pb-24 pt-4 sm:px-8 sm:pb-28">
+        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[28px] border border-cyan-300/20 bg-gradient-to-br from-[#12334b] via-[#101f34] to-[#11162b] p-7 shadow-[0_0_65px_rgba(34,211,238,.08)] sm:p-12">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-cyan-400/15 blur-[80px]" />
+          <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 left-1/4 h-60 w-60 rounded-full bg-violet-400/10 blur-[80px]" />
+          <div className="relative flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
+            <div className="max-w-2xl">
+              <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-300/25 bg-cyan-400/10 px-3 py-1.5 text-xs font-semibold text-cyan-200"><HeartHandshake size={15} /> OPEN TO FEEDBACK</span>
+              <h2 className="text-2xl font-bold tracking-tight text-white sm:text-4xl">Have an idea to make <span className="text-cyan-300">ToolVerse better?</span></h2>
+              <p className="mt-4 text-sm leading-7 text-slate-300">Feel free to contact me for improvement advice, bug reports, feature suggestions or general feedback. Your ideas can help shape what comes next.</p>
+            </div>
+            <div className="flex shrink-0 flex-col gap-3">
+              <a href="mailto:galvoid.tech@gmail.com?subject=ToolVerse%20Feedback" className="inline-flex items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-5 py-3.5 text-sm font-bold text-slate-950 shadow-[0_0_28px_rgba(34,211,238,.2)] transition hover:-translate-y-0.5 hover:brightness-110"><Mail size={18} /> Send feedback <ArrowUpRight size={16} /></a>
+              <a href="https://github.com/Tanvir-Azad-Mahir" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/[.05] px-5 py-3 text-sm font-semibold text-white transition hover:border-cyan-300/40 hover:bg-white/10"><GitBranch size={17} /> Developer's GitHub <ArrowUpRight size={15} /></a>
+            </div>
           </div>
         </div>
       </section>

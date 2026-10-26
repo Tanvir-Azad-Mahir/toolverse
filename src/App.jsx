@@ -6,8 +6,20 @@ import SiteLayout from "./SiteLayout";
 import ToolPage from "./ToolPage";
 import { descriptions } from "./toolData";
 
+const HOME_SECTIONS = [
+  "tools",
+  "features",
+  "how-it-works",
+  "about",
+  "contact",
+];
+
 function getHash() {
-  return decodeURIComponent(window.location.hash.slice(1));
+  try {
+    return decodeURIComponent(window.location.hash.slice(1));
+  } catch {
+    return window.location.hash.slice(1);
+  }
 }
 
 function getActiveTool() {
@@ -56,11 +68,14 @@ export default function App() {
   // Scroll after the correct page has rendered.
   useEffect(() => {
     if (active) {
-      window.scrollTo({ top: 0, behavior: "instant" });
+      window.scrollTo({
+        top: 0,
+        behavior: "instant",
+      });
       return;
     }
 
-    if (hash === "tools" || hash === "about") {
+    if (HOME_SECTIONS.includes(hash)) {
       requestAnimationFrame(() => {
         document.getElementById(hash)?.scrollIntoView({
           behavior: "smooth",
@@ -68,18 +83,25 @@ export default function App() {
         });
       });
     } else {
-      window.scrollTo({ top: 0, behavior: "instant" });
+      window.scrollTo({
+        top: 0,
+        behavior: "instant",
+      });
     }
   }, [hash, active]);
 
   function navigate(hash = "") {
     if (getHash() === hash) {
-      if (hash === "tools" || hash === "about") {
+      if (HOME_SECTIONS.includes(hash)) {
         document.getElementById(hash)?.scrollIntoView({
           behavior: "smooth",
+          block: "start",
         });
       } else {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
       }
       return;
     }
@@ -88,7 +110,9 @@ export default function App() {
 
     setRoute({
       hash,
-      active: Object.hasOwn(descriptions, hash) ? hash : "",
+      active: Object.hasOwn(descriptions, hash)
+        ? hash
+        : "",
     });
   }
 

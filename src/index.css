@@ -59,3 +59,25 @@ select:focus-visible {
     scroll-behavior: auto;
   }
 }
+/* Custom ToolVerse scrollbar */
+html {
+  scrollbar-color: #15506a #080d16;
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #080d16;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #0891b2, #2563eb);
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #22d3ee;
+}

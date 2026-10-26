@@ -102,3 +102,94 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .field-row { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+/* =====================================
+   TOOLVERSE NEON ENHANCEMENTS
+===================================== */
+
+/* Tool panel */
+.tool-panel {
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.tool-panel:hover {
+  border-color: rgba(34, 211, 238, 0.2);
+  box-shadow:
+    0 20px 65px rgba(0, 0, 0, 0.35),
+    0 0 35px rgba(34, 211, 238, 0.05);
+}
+
+/* Input focus glow */
+.tool-form input:focus,
+.tool-form textarea:focus,
+.tool-form select:focus {
+  border-color: #22d3ee;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.09);
+}
+
+/* Primary button neon glow */
+.primary-button:hover {
+  box-shadow: 0 0 25px rgba(34, 211, 238, 0.25);
+}
+
+/* Secondary button */
+.secondary-button {
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.secondary-button:hover {
+  border-color: rgba(34, 211, 238, 0.35);
+}
+
+/* Upload zone glow */
+.upload-zone {
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.upload-zone:hover {
+  border-color: rgba(34, 211, 238, 0.6);
+  background: #10283d;
+  box-shadow: inset 0 0 30px rgba(34, 211, 238, 0.04);
+}
+
+/* Result panel */
+.result-panel {
+  transition: border-color 0.3s ease;
+}
+
+.result-panel:hover {
+  border-color: rgba(34, 211, 238, 0.35);
+}
+
+/* Statistics cards */
+.stat-card {
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(34, 211, 238, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-panel,
+  .primary-button,
+  .secondary-button,
+  .upload-zone,
+  .result-panel,
+  .stat-card {
+    transition: none;
+  }
+
+  .stat-card:hover {
+    transform: none;
+  }
+}

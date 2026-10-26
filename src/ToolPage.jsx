@@ -1,41 +1,29 @@
 
-import { ArrowLeft, ShieldCheck } from "lucide-react";
-
+import { lazy, Suspense } from "react";
+import { ArrowLeft, ShieldCheck, LoaderCircle } from "lucide-react";
 import { tools, descriptions } from "./toolData";
 
-import ImageCompressor from "./tools/ImageCompressor";
-import ImageResizer from "./tools/ImageResizer";
-import QRCodeGenerator from "./tools/QRCodeGenerator";
-import WordCounter from "./tools/WordCounter";
-import JSONFormatter from "./tools/JSONFormatter";
-import PercentageCalculator from "./tools/PercentageCalculator";
-import TextCaseConverter from "./tools/TextCaseConverter";
-
-import PasswordGenerator from "./tools/PasswordGenerator";
-import UUIDGenerator from "./tools/UUIDGenerator";
-import Base64Converter from "./tools/Base64Converter";
-import DateCalculator from "./tools/DateCalculator";
-import ImageToPDF from "./tools/ImageToPDF";
-
 const toolComponents = {
-  compress: ImageCompressor,
-  resize: ImageResizer,
-  qr: QRCodeGenerator,
-  words: WordCounter,
-  json: JSONFormatter,
-  percent: PercentageCalculator,
-  textcase: TextCaseConverter,
-  password: PasswordGenerator,
-  uuid: UUIDGenerator,
-  base64: Base64Converter,
-  date: DateCalculator,
-  imagetopdf: ImageToPDF,
+  compress: lazy(() => import("./tools/ImageCompressor")),
+  resize: lazy(() => import("./tools/ImageResizer")),
+  qr: lazy(() => import("./tools/QRCodeGenerator")),
+  words: lazy(() => import("./tools/WordCounter")),
+  json: lazy(() => import("./tools/JSONFormatter")),
+  percent: lazy(() => import("./tools/PercentageCalculator")),
+  textcase: lazy(() => import("./tools/TextCaseConverter")),
+  password: lazy(() => import("./tools/PasswordGenerator")),
+  uuid: lazy(() => import("./tools/UUIDGenerator")),
+  base64: lazy(() => import("./tools/Base64Converter")),
+  date: lazy(() => import("./tools/DateCalculator")),
+  imagetopdf: lazy(() => import("./tools/ImageToPDF")),
 };
 
 export default function ToolPage({ id, onBack }) {
   const info = descriptions[id];
   const currentTool = tools.find((tool) => tool.id === id);
-  const ToolComponent = toolComponents[id];
+  const ToolComponent = Object.hasOwn(toolComponents, id)
+    ? toolComponents[id]
+    : null;
 
   if (!info || !currentTool || !ToolComponent) {
     return null;
@@ -83,7 +71,24 @@ export default function ToolPage({ id, onBack }) {
         aria-label={info.title}
         className="tool-panel relative overflow-hidden rounded-[24px] border border-white/10 bg-[#101722]/90 p-5 shadow-[0_25px_85px_rgba(0,0,0,0.30)] sm:p-8"
       >
-        <ToolComponent />
+        <Suspense
+          fallback={
+            <div
+              role="status"
+              className="flex min-h-[240px] flex-col items-center justify-center gap-3"
+            >
+              <LoaderCircle
+                size={30}
+                className="animate-spin text-cyan-300"
+              />
+              <p className="text-sm text-slate-400">
+                Loading tool...
+              </p>
+            </div>
+          }
+        >
+          <ToolComponent />
+        </Suspense>
       </section>
 
       <div className="mt-6 flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.025] p-4 text-xs leading-6 text-slate-400 sm:text-sm">
