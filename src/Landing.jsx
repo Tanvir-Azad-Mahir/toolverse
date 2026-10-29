@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  Sparkles,
   Check,
   ArrowRight,
   Layers3,
@@ -21,385 +20,7 @@ import {
 
 import { tools, categories } from "./toolData";
 
-// Positions for the floating tools around the galaxy
-const galaxyPositions = [
-  {
-    top: "6%",
-    left: "5%",
-    delay: "0s",
-  },
-  {
-    top: "8%",
-    right: "2%",
-    delay: "-1s",
-  },
-  {
-    top: "36%",
-    left: "0%",
-    delay: "-2s",
-  },
-  {
-    top: "42%",
-    right: "0%",
-    delay: "-3s",
-  },
-  {
-    bottom: "22%",
-    left: "5%",
-    delay: "-1.5s",
-  },
-  {
-    bottom: "20%",
-    right: "3%",
-    delay: "-2.5s",
-  },
-  {
-    bottom: "2%",
-    left: "34%",
-    delay: "-0.5s",
-  },
-];
-
-// Generate a deterministic star field
-const stars = Array.from({ length: 65 }, (_, index) => ({
-  x: (index * 73 + 17) % 100,
-  y: (index * 47 + 23) % 100,
-  size: index % 6 === 0 ? 3 : 1.5,
-  delay: `${-(index % 8) * 0.4}s`,
-  duration: `${2 + (index % 5) * 0.65}s`,
-}));
-
-function ToolGalaxy({ onOpenTool }) {
-  return (
-    <div className="tv-galaxy relative mx-auto h-[585px] w-full max-w-[540px] min-w-0 select-none sm:h-[490px] lg:h-[550px]">
-      {/* Animations */}
-      <style>{`
-        @keyframes tvOrbitOne {
-          from {
-            transform: translate(-50%, -50%) rotate(-25deg);
-          }
-          to {
-            transform: translate(-50%, -50%) rotate(335deg);
-          }
-        }
-
-        @keyframes tvOrbitTwo {
-          from {
-            transform: translate(-50%, -50%) rotate(45deg);
-          }
-          to {
-            transform: translate(-50%, -50%) rotate(405deg);
-          }
-        }
-
-        @keyframes tvOrbitThree {
-          from {
-            transform: translate(-50%, -50%) rotate(0deg);
-          }
-          to {
-            transform: translate(-50%, -50%) rotate(360deg);
-          }
-        }
-
-        @keyframes tvFloat {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-12px);
-          }
-        }
-
-        @keyframes tvTwinkle {
-          0%, 100% {
-            opacity: 0.2;
-            transform: scale(0.7);
-          }
-          50% {
-            opacity: 1;
-            transform: scale(1.3);
-          }
-        }
-
-        @keyframes tvCorePulse {
-          0%, 100% {
-            box-shadow:
-              0 0 30px rgba(34, 211, 238, 0.45),
-              0 0 85px rgba(14, 165, 233, 0.25);
-          }
-          50% {
-            box-shadow:
-              0 0 50px rgba(34, 211, 238, 0.7),
-              0 0 115px rgba(14, 165, 233, 0.4);
-          }
-        }
-
-        @keyframes tvNeonSweep {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        @keyframes tvBorderGlow {
-          0%, 100% { box-shadow: 0 0 20px rgba(34,211,238,.08); }
-          50% { box-shadow: 0 0 34px rgba(34,211,238,.19); }
-        }
-        .tv-neon-border { animation: tvBorderGlow 5s ease-in-out infinite; }
-        .tv-shimmer { background-size: 200% 200%; animation: tvNeonSweep 7s ease-in-out infinite; }
-        @keyframes tvHeroReveal {
-          from {
-            opacity: 0;
-            transform: translateY(22px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .tv-orbit {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          border: 1px solid rgba(71, 197, 255, 0.25);
-          border-radius: 50%;
-          pointer-events: none;
-        }
-
-        .tv-orbit-one {
-          width: 72%;
-          height: 39%;
-          animation: tvOrbitOne 17s linear infinite;
-        }
-
-        .tv-orbit-two {
-          width: 83%;
-          height: 53%;
-          border-color: rgba(96, 165, 250, 0.23);
-          animation: tvOrbitTwo 25s linear infinite;
-        }
-
-        .tv-orbit-three {
-          width: 58%;
-          height: 58%;
-          border-style: dashed;
-          border-color: rgba(103, 232, 249, 0.18);
-          animation: tvOrbitThree 34s linear infinite;
-        }
-
-        .tv-floating-tool {
-          animation: tvFloat 5s ease-in-out infinite;
-        }
-
-        .tv-galaxy-core {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          width: 118px;
-          height: 118px;
-          transform: translate(-50%, -50%);
-          border-radius: 50%;
-          background: radial-gradient(
-            circle at 35% 30%,
-            #e1ffff 0%,
-            #67e8f9 12%,
-            #0891b2 35%,
-            #164b84 62%,
-            #06152b 85%
-          );
-          box-shadow:
-            0 0 30px rgba(34, 211, 238, 0.45),
-            0 0 85px rgba(14, 165, 233, 0.25),
-            inset -12px -12px 32px rgba(0, 0, 0, 0.4);
-          animation: tvCorePulse 4s ease-in-out infinite;
-        }
-
-        .tv-hero-reveal {
-          animation: tvHeroReveal 0.8s ease-out both;
-        }
-
-        .tv-hero-reveal-delay {
-          animation: tvHeroReveal 0.9s ease-out 0.2s both;
-        }
-
-        @media (max-width: 639px) {
-          /* Reserve the top of the mobile galaxy for the orbit.
-             The 7 clickable shortcuts get their own grid below it. */
-          .tv-galaxy-core {
-            width: 92px;
-            height: 92px;
-            top: 150px;
-          }
-          .tv-galaxy .tv-orbit {
-            top: 150px;
-          }
-          .tv-galaxy .tv-orbit-one {
-            width: min(82%, 285px);
-            height: 112px;
-          }
-          .tv-galaxy .tv-orbit-two {
-            width: min(90%, 315px);
-            height: 185px;
-          }
-          .tv-galaxy .tv-orbit-three {
-            width: 150px;
-            height: 150px;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .tv-orbit-one,
-          .tv-orbit-two,
-          .tv-orbit-three,
-          .tv-floating-tool,
-          .tv-galaxy-core,
-          .tv-hero-reveal,
-          .tv-hero-reveal-delay,
-          .tv-shimmer,
-          .tv-neon-border {
-            animation: none !important;
-          }
-
-          .tv-orbit-one {
-            transform: translate(-50%, -50%) rotate(-25deg);
-          }
-
-          .tv-orbit-two {
-            transform: translate(-50%, -50%) rotate(45deg);
-          }
-
-          .tv-orbit-three {
-            transform: translate(-50%, -50%);
-          }
-        }
-      `}</style>
-
-      {/* Galaxy background */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-[8%] rounded-full bg-cyan-500/10 blur-[85px]"
-      />
-
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-[24%] rounded-full bg-blue-500/20 blur-[55px]"
-      />
-
-      {/* Stars */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 overflow-hidden"
-      >
-        {stars.map((star, index) => (
-          <span
-            key={index}
-            className="absolute rounded-full bg-cyan-100 shadow-[0_0_9px_rgba(125,211,252,.8)] motion-safe:animate-[tvTwinkle_3s_ease-in-out_infinite]"
-            style={{
-              left: `${star.x}%`,
-              top: `${star.y}%`,
-              width: star.size,
-              height: star.size,
-              animationDelay: star.delay,
-              animationDuration: star.duration,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Animated orbital rings */}
-      <div
-        aria-hidden="true"
-        className="tv-orbit tv-orbit-one"
-      />
-
-      <div
-        aria-hidden="true"
-        className="tv-orbit tv-orbit-two"
-      />
-
-      <div
-        aria-hidden="true"
-        className="tv-orbit tv-orbit-three"
-      />
-
-      {/* Central galaxy - no logo */}
-      <div
-        aria-hidden="true"
-        className="tv-galaxy-core"
-      >
-        <div className="absolute inset-4 rounded-full border border-white/20" />
-        <div className="absolute inset-8 rounded-full bg-white/10 blur-lg" />
-      </div>
-
-      {/* Decorative orbital particles */}
-      <div
-        aria-hidden="true"
-        className="tv-orbit tv-orbit-one"
-        style={{
-          animationDuration: "10s",
-          borderColor: "transparent",
-        }}
-      >
-        <span className="absolute left-1/2 top-0 h-2.5 w-2.5 rounded-full bg-cyan-200 shadow-[0_0_20px_rgba(34,211,238,1)]" />
-        <span className="absolute bottom-[7%] right-[7%] h-1.5 w-1.5 rounded-full bg-blue-300 shadow-[0_0_15px_rgba(96,165,250,.8)]" />
-      </div>
-
-      {/* Floating clickable tool cards */}
-      {tools.slice(0, 7).map((tool, index) => {
-        const Icon = tool.icon;
-        const position = galaxyPositions[index];
-
-        return (
-          <div
-            key={tool.id}
-            className="tv-floating-tool absolute z-20 hidden sm:block"
-            style={{
-              ...position,
-              animationDelay: position.delay,
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => onOpenTool(tool.id)}
-              aria-label={`Open ${tool.name}`}
-              className="group flex max-w-[144px] items-center gap-2 rounded-xl border border-cyan-300/20 bg-[#101e31]/95 px-2.5 py-2 text-left shadow-[0_10px_30px_rgba(0,0,0,.3)] backdrop-blur-xl transition duration-300 hover:scale-105 hover:border-cyan-300/70 hover:bg-[#192d45] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 sm:max-w-[175px] sm:gap-3 sm:px-3 sm:py-2.5"
-            >
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-cyan-400/10 text-cyan-300 sm:h-9 sm:w-9">
-                <Icon size={18} />
-              </span>
-
-              <span className="text-[10px] font-semibold leading-4 text-slate-200 group-hover:text-white sm:text-xs">
-                {tool.name}
-              </span>
-            </button>
-          </div>
-        );
-      })}
-
-      {/* Mobile-only shortcuts: separate grid prevents orbital chips from overlapping. */}
-      <div className="absolute inset-x-0 top-[305px] z-20 grid grid-cols-2 gap-2.5 px-1 sm:hidden">
-        {tools.slice(0, 7).map((tool, index) => {
-          const Icon = tool.icon;
-          return (
-            <button
-              key={tool.id}
-              type="button"
-              onClick={() => onOpenTool(tool.id)}
-              className={`flex min-h-[54px] min-w-0 items-center gap-2 rounded-xl border border-cyan-300/20 bg-[#101e31]/95 px-3 py-2 text-left text-slate-200 shadow-[0_8px_25px_rgba(0,0,0,.28)] transition active:scale-[.98] focus-visible:outline-2 focus-visible:outline-cyan-400 ${index === 6 ? "col-span-2" : ""}`}
-              aria-label={`Open ${tool.name}`}
-            >
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-cyan-400/10 text-cyan-300">
-                <Icon size={17} />
-              </span>
-              <span className="min-w-0 text-[11px] font-semibold leading-4">{tool.name}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-export default function Landing({ onOpenTool }) {
+export default function Landing() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All tools");
 
@@ -419,63 +40,39 @@ export default function Landing({ onOpenTool }) {
     <main className="relative flex-1 overflow-hidden">
       <div aria-hidden="true" className="pointer-events-none absolute left-[-180px] top-10 h-[460px] w-[460px] rounded-full bg-cyan-500/[.08] blur-[125px]" />
       <div aria-hidden="true" className="pointer-events-none absolute right-[-170px] top-[700px] h-[440px] w-[440px] rounded-full bg-indigo-500/[.09] blur-[130px]" />
-      {/* ================= HERO ================= */}
-      <section className="relative mx-auto grid max-w-7xl items-center gap-4 px-5 pb-10 pt-12 sm:gap-8 sm:px-8 sm:pb-20 sm:pt-24 lg:grid-cols-[1.1fr_.9fr] lg:gap-10 lg:px-10 lg:pb-28 lg:pt-28">
-        {/* Hero content */}
-        <div className="tv-hero-reveal relative z-10 max-w-2xl">
-          <div className="tv-neon-border mb-8 inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/[.07] px-4 py-2 text-xs font-medium text-cyan-200">
-            <Sparkles size={14} />
+      {/* ================= SIMPLE CENTERED HERO ================= */}
+      <section className="relative mx-auto flex max-w-7xl flex-col items-center px-5 pb-20 pt-24 text-center sm:px-8 sm:pb-28 sm:pt-32 lg:px-10 lg:pt-36">
+        <div className="max-w-3xl">
+          <p className="mb-6 inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[.04] px-4 py-2 text-xs font-medium tracking-wide text-cyan-200">
             Your everyday digital toolbox
-          </div>
-
-          <h1 className="max-w-2xl text-[clamp(2rem,4.5vw,4.5rem)] font-extrabold leading-[1.12] tracking-[-.045em] text-white">
-            Everything you need.
-            <span className="tv-shimmer block bg-gradient-to-r from-cyan-200 via-sky-400 to-violet-400 bg-clip-text text-transparent">
-              Nothing you don't.
-            </span>
-          </h1>
-
-          <p className="mt-6 max-w-lg text-sm leading-7 text-slate-400 sm:mt-7 sm:text-base sm:leading-8">
-            Powerful little tools for your everyday workflow.
-            Edit images, transform text, format code, and get things
-            done — all in one place.
           </p>
 
-          <div className="mt-7 flex flex-wrap items-center gap-3 sm:mt-9 sm:gap-4">
+          <h1 className="text-[clamp(2.5rem,6vw,5.25rem)] font-extrabold leading-[1.1] tracking-[-.055em] text-white">
+            Everything you need.
+            <span className="block text-cyan-300">Nothing you don't.</span>
+          </h1>
+
+          <p className="mx-auto mt-7 max-w-xl text-sm leading-7 text-slate-400 sm:text-base sm:leading-8">
+            Powerful little tools for your everyday workflow. Edit images,
+            transform text, format code, and get things done — all in one place.
+          </p>
+
+          <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
             <a
               href="#tools"
-              className="inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-6 py-3.5 text-sm font-bold text-slate-950 shadow-[0_10px_35px_rgba(34,211,238,.20)] transition duration-300 hover:-translate-y-1 hover:brightness-110"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-6 py-3.5 text-sm font-semibold text-slate-950 hover:bg-cyan-300"
             >
               Explore all tools
               <ArrowRight size={18} />
             </a>
-
-            <span className="text-sm text-slate-500">
-              {tools.length} tools. Free to use.
-            </span>
+            <span className="text-sm text-slate-500">{tools.length} tools. Free to use.</span>
           </div>
 
-          <div className="mt-7 flex flex-wrap gap-x-4 gap-y-3 text-xs font-medium text-slate-400 sm:mt-10 sm:gap-x-6 sm:text-sm">
-            <span className="inline-flex items-center gap-2">
-              <Check size={16} className="text-cyan-300" />
-              No signup needed
-            </span>
-
-            <span className="inline-flex items-center gap-2">
-              <Check size={16} className="text-cyan-300" />
-              Browser-based
-            </span>
-
-            <span className="inline-flex items-center gap-2">
-              <Check size={16} className="text-cyan-300" />
-              Easy to use
-            </span>
+          <div className="mt-9 flex flex-wrap justify-center gap-x-6 gap-y-3 text-xs text-slate-400 sm:text-sm">
+            <span className="inline-flex items-center gap-2"><Check size={16} className="text-cyan-300" /> No signup needed</span>
+            <span className="inline-flex items-center gap-2"><Check size={16} className="text-cyan-300" /> Browser-based</span>
+            <span className="inline-flex items-center gap-2"><Check size={16} className="text-cyan-300" /> Easy to use</span>
           </div>
-        </div>
-
-        {/* Animated galaxy */}
-        <div className="tv-hero-reveal-delay relative min-w-0">
-          <ToolGalaxy onOpenTool={onOpenTool} />
         </div>
       </section>
 
