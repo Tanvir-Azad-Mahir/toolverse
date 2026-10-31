@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   KeyRound,
@@ -110,21 +109,21 @@ export default function PasswordGenerator() {
   return (
     <div className="space-y-7">
       <div>
-        <h2 className="flex items-center gap-2 text-lg font-bold text-white">
-          <KeyRound size={21} className="text-cyan-300" />
+        <h2 className="flex items-center gap-2 text-lg font-bold text-[#F0FDF4]">
+          <KeyRound size={21} className="text-[#86EFAC]" />
           Secure Password Generator
         </h2>
-        <p className="mt-2 text-sm text-slate-400">
+        <p className="mt-2 text-sm text-[#94A3A0]">
           Generate random passwords directly in your browser.
         </p>
       </div>
 
-      <div className="space-y-6 rounded-2xl border border-white/10 bg-[#0c1625] p-5 sm:p-6">
+      <div className="space-y-6 rounded-2xl border border-[#304038] bg-[#1B2420] p-5 sm:p-6">
         <div className="flex items-center justify-between">
-          <label htmlFor="password-length" className="text-sm font-medium text-slate-300">
+          <label htmlFor="password-length" className="text-sm font-medium text-[#D1E4D8]">
             Password length
           </label>
-          <span className="rounded-lg bg-cyan-400/10 px-3 py-1 text-sm font-bold text-cyan-300">
+          <span className="rounded-lg border border-[#86EFAC]/20 bg-[#86EFAC]/10 px-3 py-1 text-sm font-bold text-[#86EFAC]">
             {length}
           </span>
         </div>
@@ -140,10 +139,10 @@ export default function PasswordGenerator() {
             setPassword("");
             setCopied(false);
           }}
-          className="w-full accent-cyan-400"
+          className="w-full accent-[#86EFAC]"
         />
 
-        <div className="flex justify-between text-xs text-slate-500">
+        <div className="flex justify-between text-xs text-[#94A3A0]">
           <span>8 characters</span>
           <span>64 characters</span>
         </div>
@@ -152,15 +151,15 @@ export default function PasswordGenerator() {
           {Object.keys(groups).map((key) => (
             <label
               key={key}
-              className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-[#0b1422] p-4"
+              className="flex cursor-pointer items-center gap-3 rounded-xl border border-[#304038] bg-[#101210] p-4 transition hover:border-[#86EFAC]/30"
             >
               <input
                 type="checkbox"
                 checked={selected[key]}
                 onChange={() => toggle(key)}
-                className="h-4 w-4 accent-cyan-400"
+                className="h-4 w-4 accent-[#86EFAC]"
               />
-              <span className="text-sm capitalize text-slate-200">
+              <span className="text-sm capitalize text-[#D1E4D8]">
                 {key}
               </span>
             </label>
@@ -171,7 +170,7 @@ export default function PasswordGenerator() {
           type="button"
           onClick={generate}
           disabled={!activeCount}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-5 py-3.5 text-sm font-bold text-slate-950 transition hover:brightness-110 disabled:opacity-40"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#86EFAC] px-5 py-3.5 text-sm font-bold text-[#101210] transition hover:bg-[#A7F3C4] disabled:cursor-not-allowed disabled:opacity-40"
         >
           <RefreshCw size={17} />
           Generate password
@@ -179,13 +178,13 @@ export default function PasswordGenerator() {
       </div>
 
       {password && (
-        <div className="space-y-4 rounded-2xl border border-cyan-400/20 bg-[#0c1726] p-5 sm:p-6">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+        <div className="space-y-4 rounded-2xl border border-[#86EFAC]/20 bg-[#1B2420] p-5 sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[#94A3A0]">
             Generated password
           </p>
 
-          <div className="rounded-xl border border-white/10 bg-[#080f1c] p-4">
-            <p className="break-all font-mono text-base leading-7 text-cyan-200">
+          <div className="rounded-xl border border-[#304038] bg-[#101210] p-4">
+            <p className="break-all font-mono text-base leading-7 text-[#D1FAE5]">
               {password}
             </p>
           </div>
@@ -193,7 +192,7 @@ export default function PasswordGenerator() {
           <button
             type="button"
             onClick={copyPassword}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-3 text-sm font-semibold text-cyan-200 transition hover:bg-cyan-400/20"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#86EFAC]/25 bg-[#86EFAC]/10 px-5 py-3 text-sm font-semibold text-[#86EFAC] transition hover:bg-[#86EFAC]/15"
           >
             {copied ? <Check size={17} /> : <Copy size={17} />}
             {copied ? "Copied" : "Copy password"}
@@ -207,8 +206,8 @@ export default function PasswordGenerator() {
         </p>
       )}
 
-      <p className="flex items-start gap-2 text-xs leading-6 text-slate-500">
-        <ShieldCheck size={17} className="mt-0.5 shrink-0 text-cyan-300" />
+      <p className="flex items-start gap-2 text-xs leading-6 text-[#94A3A0]">
+        <ShieldCheck size={17} className="mt-0.5 shrink-0 text-[#86EFAC]" />
         Uses cryptographically secure browser randomness.
         Passwords are not uploaded or saved by this tool.
       </p>

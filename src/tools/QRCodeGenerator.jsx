@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 const inputClass =
-  "w-full rounded-xl border border-white/10 bg-[#0b1422] px-4 py-3.5 text-sm text-white outline-none transition focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/10 placeholder:text-slate-600";
+  "w-full rounded-xl border border-white/10 bg-[#1B2420] px-4 py-3.5 text-sm text-white outline-none transition focus:border-[#86EFAC]/60 focus:ring-2 focus:ring-[#86EFAC]/10 placeholder:text-slate-600";
 
 export default function QRCodeGenerator() {
   const [text, setText] = useState("");
@@ -126,7 +126,7 @@ export default function QRCodeGenerator() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="flex items-center gap-2.5 text-lg font-bold text-white sm:text-xl">
-            <QrCode size={22} className="text-cyan-300" />
+            <QrCode size={22} className="text-[#86EFAC]" />
             QR Code Studio
           </h2>
           <p className="mt-2 text-sm leading-6 text-slate-400">
@@ -134,7 +134,7 @@ export default function QRCodeGenerator() {
           </p>
         </div>
 
-        <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-xs font-medium text-emerald-300">
+        <span className="inline-flex items-center gap-2 rounded-full border border-[#86EFAC]/25 bg-[#86EFAC]/10 px-3 py-1.5 text-xs font-medium text-[#86EFAC]">
           <ShieldCheck size={14} />
           Browser-based
         </span>
@@ -146,7 +146,7 @@ export default function QRCodeGenerator() {
           htmlFor="qr-input"
           className="flex items-center gap-2 text-sm font-semibold text-slate-200"
         >
-          <Link2 size={17} className="text-cyan-300" />
+          <Link2 size={17} className="text-[#86EFAC]" />
           URL or text
         </label>
 
@@ -170,9 +170,9 @@ export default function QRCodeGenerator() {
       </div>
 
       {/* Customization */}
-      <div className="space-y-6 rounded-2xl border border-white/10 bg-[#0c1625] p-5 sm:p-6">
+      <div className="space-y-6 rounded-2xl border border-white/10 bg-[#1B2420] p-5 sm:p-6">
         <h3 className="flex items-center gap-2 text-sm font-bold text-white">
-          <Settings2 size={18} className="text-cyan-300" />
+          <Settings2 size={18} className="text-[#86EFAC]" />
           Customize QR code
         </h3>
 
@@ -218,12 +218,12 @@ export default function QRCodeGenerator() {
 
         <div className="space-y-3">
           <p className="flex items-center gap-2 text-xs font-medium text-slate-300">
-            <Palette size={16} className="text-cyan-300" />
+            <Palette size={16} className="text-[#86EFAC]" />
             QR colors
           </p>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0b1422] p-3">
+            <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#1B2420] p-3">
               <input
                 type="color"
                 value={darkColor}
@@ -242,7 +242,7 @@ export default function QRCodeGenerator() {
               </span>
             </label>
 
-            <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0b1422] p-3">
+            <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#1B2420] p-3">
               <input
                 type="color"
                 value={lightColor}
@@ -269,7 +269,7 @@ export default function QRCodeGenerator() {
         type="button"
         onClick={generate}
         disabled={generating || !text.trim()}
-        className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-6 py-4 text-sm font-bold text-slate-950 shadow-[0_12px_35px_rgba(34,211,238,0.13)] transition hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-[#86EFAC] px-6 py-4 text-sm font-bold text-slate-950  transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {generating ? (
           <>
@@ -297,14 +297,14 @@ export default function QRCodeGenerator() {
 
       {/* Generated QR */}
       {qr && (
-        <div className="overflow-hidden rounded-2xl border border-emerald-400/20 bg-[#0c1726]">
-          <div className="flex items-center gap-2 border-b border-emerald-400/15 bg-emerald-400/[0.04] px-5 py-4 text-sm font-semibold text-emerald-300">
+        <div className="overflow-hidden rounded-2xl border border-[#86EFAC]/25 bg-[#1B2420]">
+          <div className="flex items-center gap-2 border-b border-[#86EFAC]/20 bg-[#86EFAC]/[0.04] px-5 py-4 text-sm font-semibold text-[#86EFAC]">
             <CheckCircle2 size={19} />
             QR code generated successfully
           </div>
 
           <div className="space-y-6 p-5 sm:p-7">
-            <div className="flex justify-center rounded-xl border border-white/10 bg-[#090f1c] p-6">
+            <div className="flex justify-center rounded-xl border border-white/10 bg-[#101210] p-6">
               <img
                 src={qr}
                 alt="Generated QR code"
@@ -312,7 +312,7 @@ export default function QRCodeGenerator() {
               />
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-[#0b1422] p-4">
+            <div className="rounded-xl border border-white/10 bg-[#1B2420] p-4">
               <p className="mb-2 text-xs font-medium text-slate-400">
                 Encoded content
               </p>
@@ -324,7 +324,7 @@ export default function QRCodeGenerator() {
               <button
                 type="button"
                 onClick={copyText}
-                className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-cyan-300 hover:text-cyan-200"
+                className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-[#86EFAC] hover:text-[#BBF7D0]"
               >
                 {copied ? (
                   <>
@@ -344,7 +344,7 @@ export default function QRCodeGenerator() {
               <button
                 type="button"
                 onClick={downloadPNG}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-5 py-3.5 text-sm font-bold text-slate-950 transition hover:brightness-110"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#86EFAC] px-5 py-3.5 text-sm font-bold text-slate-950 transition hover:brightness-110"
               >
                 <Download size={17} />
                 Download PNG
@@ -353,7 +353,7 @@ export default function QRCodeGenerator() {
               <button
                 type="button"
                 onClick={downloadSVG}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-3.5 text-sm font-semibold text-cyan-200 transition hover:bg-cyan-400/15"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#86EFAC]/25 bg-[#86EFAC]/10 px-5 py-3.5 text-sm font-semibold text-[#BBF7D0] transition hover:bg-[#86EFAC]/15"
               >
                 <Download size={17} />
                 Download SVG

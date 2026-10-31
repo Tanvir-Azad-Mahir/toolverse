@@ -1,11 +1,114 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Copy, Check, Download, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Copy, Check, Link2, AlertCircle } from "lucide-react";
 
-const input = "w-full rounded-xl border border-white/10 bg-[#080f1c] px-4 py-3 font-mono text-sm text-slate-100 outline-none focus:border-cyan-400/50 placeholder:text-slate-600";
-const button = "rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-5 py-3 font-semibold text-slate-950 hover:brightness-110 disabled:opacity-40";
-const subtle = "rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 hover:bg-white/10";
-const box = "rounded-xl border border-white/10 bg-[#080f1c] p-4 text-sm text-slate-200";
-function download(filename, content, type = "text/plain") { const url = URL.createObjectURL(new Blob([content], {type})); const a=document.createElement("a");a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000); }
-function CopyButton({text}) {const [copied,setCopied]=useState(false);return <button type="button" className={subtle} disabled={!text} onClick={async()=>{try{await navigator.clipboard.writeText(text);setCopied(true);setTimeout(()=>setCopied(false),1500)}catch{setCopied(false)}}}>{copied?<><Check size={15} className="inline"/> Copied</>:<><Copy size={15} className="inline"/> Copy</>}</button>}
+const inputClass =
+  "w-full min-h-40 resize-y rounded-xl border border-[#304038] bg-[#101210] px-4 py-3 font-mono text-sm leading-7 text-[#F0FDF4] outline-none transition placeholder:text-[#718579] focus:border-[#86EFAC]/60 focus-visible:ring-2 focus-visible:ring-[#86EFAC]/15";
 
-export default function URLEncoderDecoder(){const [value,setValue]=useState('hello world & more'),[mode,setMode]=useState('encode');const result=useMemo(()=>{try{return {text:mode==='encode'?encodeURIComponent(value):decodeURIComponent(value),error:''}}catch(e){return {text:'',error:e.message}}},[value,mode]);return <div className="space-y-5"><h2 className="text-xl font-bold">URL Encoder / Decoder</h2><div className="flex gap-2">{['encode','decode'].map(x=><button key={x} className={mode===x?button:subtle} onClick={()=>setMode(x)}>{x==='encode'?'Encode':'Decode'}</button>)}</div><textarea className={input+" min-h-40"} value={value} onChange={e=>setValue(e.target.value)} placeholder="Enter text"/>{result.error&&<p role="alert" className="text-red-300">{result.error}</p>}<pre className={box+" whitespace-pre-wrap break-all"}>{result.text}</pre><CopyButton text={result.text}/></div>}
+export default function URLEncoderDecoder() {
+  const [value, setValue] = useState("hello world & more");
+  const [mode, setMode] = useState("encode");
+  const [copied, setCopied] = useState(false);
+
+  const result = useMemo(() => {
+    try {
+      return {
+        text: mode === "encode" ? encodeURIComponent(value) : decodeURIComponent(value),
+        error: "",
+      };
+    } catch (error) {
+      return { text: "", error: error.message };
+    }
+  }, [value, mode]);
+
+  async function copyResult() {
+    if (!result.text) return;
+    try {
+      await navigator.clipboard.writeText(result.text);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="flex items-center gap-2 text-lg font-bold text-[#F0FDF4] sm:text-xl">
+          <Link2 size={21} className="text-[#86EFAC]" />
+          URL Encoder / Decoder
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-[#94A3A0]">
+          Encode or decode URL components locally in your browser.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 rounded-xl border border-[#304038] bg-[#1B2420] p-1.5">
+        {["encode", "decode"].map((option) => (
+          <button
+            key={option}
+            type="button"
+            aria-pressed={mode === option}
+            onClick={() => {
+              setMode(option);
+              setCopied(false);
+            }}
+            className={`rounded-lg px-4 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#86EFAC] ${
+              mode === option
+                ? "bg-[#86EFAC]/15 text-[#86EFAC]"
+                : "text-[#94A3A0] hover:bg-white/5 hover:text-[#F0FDF4]"
+            }`}
+          >
+            {option === "encode" ? "Encode" : "Decode"}
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="url-codec-input" className="block text-sm font-semibold text-[#D5EBDD]">
+          Input text
+        </label>
+        <textarea
+          id="url-codec-input"
+          className={inputClass}
+          value={value}
+          onChange={(event) => {
+            setValue(event.target.value);
+            setCopied(false);
+          }}
+          placeholder="Enter text"
+          spellCheck={false}
+        />
+      </div>
+
+      {result.error && (
+        <p role="alert" className="flex items-start gap-2 rounded-xl border border-red-400/20 bg-red-400/[0.06] p-3 text-sm text-red-300">
+          <AlertCircle size={17} className="mt-0.5 shrink-0" />
+          {result.error}
+        </p>
+      )}
+
+      <div className="space-y-2">
+        <label htmlFor="url-codec-output" className="block text-sm font-semibold text-[#D5EBDD]">
+          {mode === "encode" ? "Encoded output" : "Decoded output"}
+        </label>
+        <pre
+          id="url-codec-output"
+          aria-live="polite"
+          className="min-h-28 overflow-auto whitespace-pre-wrap break-all rounded-xl border border-[#365243] bg-[#171F1A] p-4 font-mono text-sm leading-7 text-[#D5EBDD]"
+        >
+          {result.text}
+        </pre>
+      </div>
+
+      <button
+        type="button"
+        onClick={copyResult}
+        disabled={!result.text}
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#86EFAC] px-5 py-3 text-sm font-bold text-[#101C14] transition hover:bg-[#A7F3C0] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+      >
+        {copied ? <Check size={17} /> : <Copy size={17} />}
+        {copied ? "Copied" : "Copy output"}
+      </button>
+    </div>
+  );
+}
