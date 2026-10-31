@@ -16,6 +16,11 @@ import {
   ArrowUpRight,
   X,
   Command,
+  Star,
+  Clock3,
+  CornerDownLeft,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 
 
@@ -44,30 +49,141 @@ const navigateToTool = (id) => {
 };
 
 
+const FAVORITES_KEY = "toolverse:favorites:v1";
+const RECENTS_KEY = "toolverse:recents:v1";
+const MAX_RECENTS = 6;
+const TOOLS_PER_PAGE = 9;
+const knownIds = new Set(tools.map((tool) => String(tool.id)));
+const toolById = new Map(tools.map((tool) => [String(tool.id), tool]));
+
+function readStoredIds(key) {
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(key) || "[]");
+    if (!Array.isArray(saved)) return [];
+    return [...new Set(saved.filter((id) => typeof id === "string" && knownIds.has(id)))];
+  } catch {
+    return [];
+  }
+}
+
+function storeIds(key, ids) {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(ids));
+  } catch {
+    // Browsers with restricted storage can still use this feature until refresh.
+  }
+}
+
 export default function Landing({ onOpenTool = navigateToTool }) {
+  const [favorites, setFavorites] = useState(() => readStoredIds(FAVORITES_KEY));
+  const [recents, setRecents] = useState(() => readStoredIds(RECENTS_KEY).slice(0, MAX_RECENTS));
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All tools");
+  const [currentPage, setCurrentPage] = useState(1);
   const searchRef = useRef(null);
+  const paletteRef = useRef(null);
+  const paletteDialogRef = useRef(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [paletteQuery, setPaletteQuery] = useState("");
+  const [paletteIndex, setPaletteIndex] = useState(0);
   const query = search.trim().toLocaleLowerCase();
+  const favoriteSet = useMemo(() => new Set(favorites), [favorites]);
+  const recentTools = useMemo(() => recents.map((id) => toolById.get(id)).filter(Boolean), [recents]);
 
-  // Keyboard shortcut: press / (or Ctrl/Cmd+K) to jump to search.
+  useEffect(() => storeIds(FAVORITES_KEY, favorites), [favorites]);
+  useEffect(() => storeIds(RECENTS_KEY, recents), [recents]);
+
+  function toggleFavorite(id) {
+    const key = String(id);
+    setFavorites((previous) => previous.includes(key)
+      ? previous.filter((item) => item !== key)
+      : [...previous, key]);
+  }
+
+  function openTool(id) {
+    const key = String(id);
+    setRecents((previous) => [key, ...previous.filter((item) => item !== key)].slice(0, MAX_RECENTS));
+    onOpenTool(id);
+  }
+
+
+  // Keep the existing "/" shortcut for the inline search.
+  // Ctrl/Cmd+K now opens the command palette, even while typing.
   useEffect(() => {
     function handleKeyDown(event) {
       const target = event.target;
       const typing = target instanceof HTMLElement &&
         (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
-      if ((event.key === "/" && !typing) || ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k")) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setPaletteOpen((open) => !open);
+      } else if (event.key === "/" && !typing && !paletteOpen) {
         event.preventDefault();
         searchRef.current?.focus();
-      }
-      if (event.key === "Escape" && document.activeElement === searchRef.current) {
-        setSearch("");
-        searchRef.current?.blur();
+      } else if (event.key === "Escape") {
+        if (paletteOpen) setPaletteOpen(false);
+        else if (document.activeElement === searchRef.current) {
+          setSearch("");
+          searchRef.current?.blur();
+        }
       }
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [paletteOpen]);
+
+  const paletteResults = useMemo(() => {
+    const q = paletteQuery.trim().toLocaleLowerCase();
+    if (q) return searchableTools.filter(({ keywords }) => keywords.includes(q)).map(({ tool }) => tool);
+    const priority = [...favorites, ...recents];
+    const seen = new Set();
+    return [...priority.map((id) => toolById.get(id)), ...tools].filter((tool) => {
+      if (!tool || seen.has(String(tool.id))) return false;
+      seen.add(String(tool.id));
+      return true;
+    });
+  }, [paletteQuery, favorites, recents]);
+
+  useEffect(() => { setPaletteIndex(0); }, [paletteQuery, paletteOpen]);
+
+  useEffect(() => {
+    if (!paletteOpen) return;
+    const previouslyFocused = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    paletteRef.current?.focus();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus?.();
+    };
+  }, [paletteOpen]);
+
+  function openFromPalette(id) {
+    setPaletteOpen(false);
+    openTool(id);
+  }
+
+  function handlePaletteKeyDown(event) {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setPaletteIndex((index) => paletteResults.length ? Math.min(index + 1, paletteResults.length - 1) : 0);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setPaletteIndex((index) => Math.max(index - 1, 0));
+    } else if (event.key === "Enter" && paletteResults[paletteIndex]) {
+      event.preventDefault();
+      openFromPalette(paletteResults[paletteIndex].id);
+    } else if (event.key === "Tab") {
+      // Keep keyboard focus within the modal while it is open.
+      const tabbable = paletteDialogRef.current?.querySelectorAll('input,button:not([disabled])');
+      if (!tabbable?.length) return;
+      const first = tabbable[0];
+      const last = tabbable[tabbable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
+  }
 
   const showResults = () => {
     const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -81,14 +197,97 @@ export default function Landing({ onOpenTool = navigateToTool }) {
     () => searchableTools
       .filter(({ tool, keywords }) =>
         (category === "All tools" || tool.category === category) &&
-        (!query || keywords.includes(query))
+        (!query || keywords.includes(query)) &&
+        (!favoritesOnly || favoriteSet.has(String(tool.id)))
       )
       .map(({ tool }) => tool),
-    [category, query]
+    [category, query, favoritesOnly, favoriteSet]
   );
+
+  // Pagination uses the already filtered list, so all directory filters work.
+  const totalPages = Math.max(1, Math.ceil(filtered.length / TOOLS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedTools = useMemo(
+    () => filtered.slice((safePage - 1) * TOOLS_PER_PAGE, safePage * TOOLS_PER_PAGE),
+    [filtered, safePage]
+  );
+
+  // New searches and filter choices always begin on page one.
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, category, favoritesOnly]);
+
+  function goToPage(page) {
+    const nextPage = Math.max(1, Math.min(totalPages, page));
+    setCurrentPage(nextPage);
+    const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    document.getElementById("tool-results")?.scrollIntoView({
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+      block: "start",
+    });
+  }
 
   return (
     <main className="relative flex-1 overflow-hidden">
+      {/* Fast tool navigation: Ctrl/Cmd+K. */}
+      {paletteOpen && (
+        <div className="fixed inset-0 z-[100] flex items-start justify-center px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-[max(12px,env(safe-area-inset-top))] sm:px-4 sm:pt-[min(15vh,130px)]" onKeyDown={handlePaletteKeyDown}>
+          <div className="absolute inset-0 bg-[#050a12]/80 backdrop-blur-sm" onClick={() => setPaletteOpen(false)} aria-hidden="true" />
+          <div ref={paletteDialogRef} role="dialog" aria-modal="true" aria-label="Search and open tools" className="relative flex max-h-[calc(100dvh-32px)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-white/15 bg-[#111b29] shadow-2xl shadow-black/60 sm:max-h-[min(75dvh,640px)]">
+            <div className="flex shrink-0 items-center gap-2 border-b border-white/10 px-3 py-3 focus-within:border-cyan-300/50 sm:gap-3 sm:px-4">
+              <Search size={19} className="shrink-0 text-cyan-300" aria-hidden="true" />
+              <input
+                ref={paletteRef}
+                type="text"
+                value={paletteQuery}
+                onChange={(event) => setPaletteQuery(event.target.value)}
+                placeholder="Search tools or categories..."
+                aria-label="Search tools in command palette"
+                aria-controls="palette-results"
+                aria-activedescendant={paletteResults[paletteIndex] ? `palette-tool-${paletteResults[paletteIndex].id}` : undefined}
+                role="combobox"
+                aria-expanded="true"
+                aria-autocomplete="list"
+                autoComplete="off"
+                spellCheck={false}
+                className="min-w-0 flex-1 border-0 bg-transparent py-2 text-sm text-white outline-none ring-0 shadow-none placeholder:text-slate-500 focus:border-0 focus:outline-none focus:ring-0 focus:shadow-none"
+                style={{ outline: "none", boxShadow: "none" }}
+              />
+              <button type="button" onClick={() => setPaletteOpen(false)} aria-label="Close command palette" className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-white/10 text-slate-400 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300"><X size={17}/></button>
+            </div>
+            <div id="palette-results" role="listbox" aria-label="Matching tools" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
+              {!paletteQuery.trim() && <p className="px-3 pb-2 pt-2 text-[11px] font-semibold uppercase tracking-widest text-slate-500">Favorites, recent & all tools</p>}
+              {paletteResults.length ? paletteResults.map((tool, index) => {
+                const Icon = tool.icon;
+                const selected = index === paletteIndex;
+                return (
+                  <button
+                    key={tool.id}
+                    type="button"
+                    id={`palette-tool-${tool.id}`}
+                    role="option"
+                    aria-selected={selected}
+                    onMouseEnter={() => setPaletteIndex(index)}
+                    onClick={() => openFromPalette(tool.id)}
+                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors ${selected ? "bg-cyan-400/10 text-white" : "text-slate-300 hover:bg-white/5"}`}
+                  >
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[.04] text-cyan-300"><Icon size={18}/></span>
+                    <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{tool.name}</span><span className="block truncate text-xs text-slate-500">{tool.category}</span></span>
+                    {favoriteSet.has(String(tool.id)) && <Star size={15} className="shrink-0 text-cyan-300" fill="currentColor" aria-label="Favorite" />}
+                    {selected && <CornerDownLeft size={16} className="shrink-0 text-slate-500" aria-hidden="true" />}
+                  </button>
+                );
+              }) : <p className="px-4 py-10 text-center text-sm text-slate-400">No matching tools. Try another keyword.</p>}
+            </div>
+            <div className="hidden shrink-0 flex-wrap items-center gap-4 border-t border-white/10 px-4 py-3 text-[11px] text-slate-500 sm:flex">
+              <span className="inline-flex items-center gap-1"><ArrowUp size={13}/><ArrowDown size={13}/> Navigate</span>
+              <span className="inline-flex items-center gap-1"><CornerDownLeft size={13}/> Open</span>
+              <span>Esc close</span>
+              <span className="ml-auto">{paletteResults.length} tools</span>
+            </div>
+          </div>
+        </div>
+      )}
       <div aria-hidden="true" className="pointer-events-none absolute left-[-180px] top-10 h-[460px] w-[460px] rounded-full bg-cyan-500/[.08] blur-[125px]" />
       <div aria-hidden="true" className="pointer-events-none absolute right-[-170px] top-[700px] h-[440px] w-[440px] rounded-full bg-indigo-500/[.09] blur-[130px]" />
       {/* ================= SIMPLE CENTERED HERO ================= */}
@@ -110,7 +309,7 @@ export default function Landing({ onOpenTool = navigateToTool }) {
 
           {/* Prominent search: shares state with the category filters below. */}
           <div role="search" className="mx-auto mt-9 w-full max-w-2xl">
-            <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-white/15 bg-[#111b29] px-3 py-2 transition-colors duration-150 focus-within:border-cyan-300/60 sm:gap-3 sm:px-5 sm:py-2.5">
+            <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-white/15 bg-[#111b29] px-2.5 py-2 transition-colors duration-150 focus-within:border-cyan-300/60 sm:gap-3 sm:px-5 sm:py-2.5">
               <Search size={21} className="shrink-0 text-slate-400" aria-hidden="true" />
               <input
                 ref={searchRef}
@@ -121,23 +320,23 @@ export default function Landing({ onOpenTool = navigateToTool }) {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 onKeyDown={(event) => { if (event.key === "Enter") showResults(); }}
-                placeholder="Try image compressor, QR code, JSON..."
+                placeholder="Search tools..."
                 aria-label="Search all ToolVerse tools"
                 aria-controls="tool-results"
                 className="block min-w-0 w-0 flex-1 appearance-none rounded-none border-0 bg-transparent p-0 py-2 text-sm text-white shadow-none ring-0 outline-none placeholder:text-slate-500 focus:border-0 focus:shadow-none focus:ring-0 focus:outline-none focus-visible:outline-none focus-visible:ring-0 sm:text-base"
                 style={{ outline: "none", boxShadow: "none", WebkitAppearance: "none" }}
               />
               {search ? (
-                <button type="button" onClick={() => {setSearch(""); searchRef.current?.focus();}} aria-label="Clear search" className="shrink-0 rounded-md p-1.5 text-slate-400 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-200"><X size={18} /></button>
+                <button type="button" onClick={() => {setSearch(""); searchRef.current?.focus();}} aria-label="Clear search" className="grid h-10 w-10 shrink-0 place-items-center rounded-md text-slate-400 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-200"><X size={18} /></button>
               ) : (
-                <kbd className="hidden items-center gap-1 rounded-md border border-white/10 px-2 py-1 text-xs text-slate-500 sm:inline-flex"><Command size={12} /> K</kbd>
+                <button type="button" onClick={() => setPaletteOpen(true)} title="Open command palette" aria-label="Open command palette" className="hidden items-center gap-1 rounded-md border border-white/10 px-2 py-1 text-xs text-slate-500 hover:border-cyan-300/40 hover:text-cyan-200 sm:inline-flex"><Command size={12} /> K</button>
               )}
-              <button type="button" onClick={showResults} className="shrink-0 rounded-xl bg-cyan-400 px-3 py-2.5 text-xs font-semibold text-slate-950 transition-colors hover:bg-cyan-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200 sm:px-4 sm:text-sm">Search</button>
+              <button type="button" onClick={showResults} className="shrink-0 rounded-xl bg-cyan-400 px-3 py-3 text-xs font-semibold text-slate-950 transition-colors hover:bg-cyan-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200 sm:px-4 sm:text-sm">Search</button>
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-400">
               <span className="mr-1">Popular:</span>
               {popularTools.map((tool) => (
-                <button key={tool.id} type="button" onClick={() => onOpenTool(tool.id)} className="rounded-full border border-white/10 bg-white/[.04] px-3 py-1.5 text-slate-300 hover:border-cyan-300/40 hover:text-cyan-200">
+                <button key={tool.id} type="button" onClick={() => openTool(tool.id)} className="rounded-full border border-white/10 bg-white/[.04] px-3 py-1.5 text-slate-300 hover:border-cyan-300/40 hover:text-cyan-200">
                   {tool.name}
                 </button>
               ))}
@@ -193,14 +392,36 @@ export default function Landing({ onOpenTool = navigateToTool }) {
             </div>
           </div>
 
+          {/* Saved tools: personal preferences stay in this browser. */}
+          {recentTools.length > 0 && (
+            <div className="mb-8 rounded-2xl border border-white/10 bg-white/[.025] p-4 sm:p-5">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h3 className="inline-flex items-center gap-2 text-sm font-semibold text-white"><Clock3 size={16} className="text-cyan-300" /> Recently used</h3>
+                <button type="button" onClick={() => setRecents([])} className="min-h-11 px-2 text-xs text-slate-400 hover:text-white">Clear history</button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {recentTools.map((tool) => (
+                  <button key={tool.id} type="button" onClick={() => openTool(tool.id)} className="min-h-11 rounded-lg border border-white/10 bg-[#142033] px-3 py-2.5 text-xs text-slate-200 transition-colors hover:border-cyan-300/40 hover:text-cyan-200">
+                    {tool.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="mb-6 flex flex-wrap items-center gap-2">
+            <button type="button" aria-pressed={!favoritesOnly} onClick={() => setFavoritesOnly(false)} className={`rounded-full border px-4 py-2 text-xs font-semibold transition-colors sm:text-sm ${!favoritesOnly ? "border-cyan-300/50 bg-cyan-400/15 text-cyan-200" : "border-white/10 text-slate-400 hover:text-white"}`}>All tools</button>
+            <button type="button" aria-pressed={favoritesOnly} onClick={() => setFavoritesOnly(true)} className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition-colors sm:text-sm ${favoritesOnly ? "border-cyan-300/50 bg-cyan-400/15 text-cyan-200" : "border-white/10 text-slate-400 hover:text-white"}`}><Star size={14} fill={favoritesOnly ? "currentColor" : "none"} /> Favorites <span className="text-xs opacity-60">{favorites.length}</span></button>
+          </div>
+
           {/* Active search summary */}
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3" aria-live="polite">
             <p className="text-sm text-slate-400">
               <span className="font-semibold text-white">{filtered.length}</span> of {tools.length} tools
               {query && <> matching <span className="font-medium text-cyan-200">“{search.trim()}”</span></>}
             </p>
-            {(search || category !== "All tools") && (
-              <button type="button" onClick={() => { setSearch(""); setCategory("All tools"); }} className="inline-flex items-center gap-1.5 text-xs text-cyan-300 hover:text-cyan-200">
+            {(search || category !== "All tools" || favoritesOnly) && (
+              <button type="button" onClick={() => { setSearch(""); setCategory("All tools"); setFavoritesOnly(false); }} className="inline-flex items-center gap-1.5 text-xs text-cyan-300 hover:text-cyan-200">
                 <X size={14}/> Reset filters
               </button>
             )}
@@ -230,17 +451,17 @@ export default function Landing({ onOpenTool = navigateToTool }) {
           </div>
 
           {/* Tool cards */}
-          <div id="tool-results" className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-            {filtered.map((tool) => {
+          <div id="tool-results" className="scroll-mt-24 grid gap-3 sm:scroll-mt-28 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+            {paginatedTools.map((tool) => {
               const Icon = tool.icon;
 
               return (
-                <button
-                  type="button"
-                  key={tool.id}
-                  onClick={() => onOpenTool(tool.id)}
-                  className="group relative flex min-h-[200px] flex-col items-start overflow-hidden rounded-[22px] border border-white/[.09] bg-gradient-to-br from-[#162132] to-[#101722] p-6 text-left transition-colors duration-150 hover:border-cyan-300/45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 sm:min-h-[226px]"
-                >
+                <div key={tool.id} className="group relative min-h-[175px] overflow-hidden rounded-[22px] border border-white/[.09] bg-gradient-to-br from-[#162132] to-[#101722] transition-colors duration-150 hover:border-cyan-300/45 sm:min-h-[226px]">
+                  <button
+                    type="button"
+                    onClick={() => openTool(tool.id)}
+                    className="flex h-full min-h-[175px] w-full flex-col items-start p-5 pr-16 text-left focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-cyan-400 sm:min-h-[226px] sm:p-6"
+                  >
                   {/* Tool icon */}
                   <span className="mb-6 grid h-12 w-12 place-items-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300 ">
                     <Icon size={23} />
@@ -258,13 +479,66 @@ export default function Landing({ onOpenTool = navigateToTool }) {
                     {tool.description}
                   </span>
 
-                  <span className="absolute right-6 top-7 text-slate-500 transition-colors group-hover:text-cyan-300">
+                  <span className="absolute right-6 bottom-6 text-slate-500 transition-colors group-hover:text-cyan-300" aria-hidden="true">
                     <ArrowRight size={18} />
                   </span>
-                </button>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`${favoriteSet.has(String(tool.id)) ? "Remove" : "Add"} ${tool.name} ${favoriteSet.has(String(tool.id)) ? "from" : "to"} favorites`}
+                    aria-pressed={favoriteSet.has(String(tool.id))}
+                    onClick={() => toggleFavorite(tool.id)}
+                    className={`absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-lg border transition-colors focus-visible:outline-2 focus-visible:outline-cyan-300 ${favoriteSet.has(String(tool.id)) ? "border-cyan-300/40 bg-cyan-400/15 text-cyan-300" : "border-white/10 bg-[#172235] text-slate-400 hover:text-cyan-300"}`}
+                  >
+                    <Star size={17} fill={favoriteSet.has(String(tool.id)) ? "currentColor" : "none"} />
+                  </button>
+                </div>
               );
             })}
           </div>
+
+          {/* Compact, accessible pagination for the main tool directory. */}
+          {filtered.length > 0 && totalPages > 1 && (
+            <nav aria-label="Tool directory pages" className="mt-9 flex flex-col items-center gap-3">
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <button
+                  type="button"
+                  disabled={safePage === 1}
+                  onClick={() => goToPage(safePage - 1)}
+                  className="min-h-11 rounded-lg border border-white/10 px-3 py-2.5 text-xs font-medium text-slate-300 transition-colors hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 sm:text-sm"
+                >
+                  Previous
+                </button>
+                {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                  <button
+                    type="button"
+                    key={page}
+                    onClick={() => goToPage(page)}
+                    aria-label={`Go to tool page ${page}`}
+                    aria-current={safePage === page ? "page" : undefined}
+                    className={`grid h-11 w-11 place-items-center rounded-lg border text-sm font-semibold transition-colors ${
+                      safePage === page
+                        ? "border-cyan-300/50 bg-cyan-400/15 text-cyan-200"
+                        : "border-white/10 text-slate-400 hover:border-white/25 hover:text-white"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  disabled={safePage === totalPages}
+                  onClick={() => goToPage(safePage + 1)}
+                  className="min-h-11 rounded-lg border border-white/10 px-3 py-2.5 text-xs font-medium text-slate-300 transition-colors hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 sm:text-sm"
+                >
+                  Next
+                </button>
+              </div>
+              <p className="text-xs text-slate-500">
+                Showing {(safePage - 1) * TOOLS_PER_PAGE + 1}–{Math.min(safePage * TOOLS_PER_PAGE, filtered.length)} of {filtered.length} matching tools
+              </p>
+            </nav>
+          )}
 
           {/* Empty search result */}
           {filtered.length === 0 && (
@@ -275,8 +549,9 @@ export default function Landing({ onOpenTool = navigateToTool }) {
               />
 
               <p className="text-sm text-slate-400">
-                No tools match your search.
-                Try another keyword or category.
+                {favoritesOnly && favorites.length === 0
+                  ? "No favorites yet. Star a tool to save it here."
+                  : "No tools match these filters. Try another keyword or category."}
               </p>
 
               <button
@@ -284,6 +559,7 @@ export default function Landing({ onOpenTool = navigateToTool }) {
                 onClick={() => {
                   setSearch("");
                   setCategory("All tools");
+                  setFavoritesOnly(false);
                 }}
                 className="mt-4 text-sm font-semibold text-cyan-300 hover:text-cyan-200"
               >

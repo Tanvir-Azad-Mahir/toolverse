@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 
 import Landing from "./Landing";
@@ -14,6 +13,9 @@ const HOME_SECTIONS = [
   "contact",
 ];
 
+const RECENTS_KEY = "toolverse:recents:v1";
+const MAX_RECENTS = 6;
+
 function getHash() {
   try {
     return decodeURIComponent(window.location.hash.slice(1));
@@ -25,6 +27,26 @@ function getHash() {
 function getActiveTool() {
   const id = getHash();
   return Object.hasOwn(descriptions, id) ? id : "";
+}
+
+function recordRecentTool(id) {
+  if (!id) return;
+
+  try {
+    const value = window.localStorage.getItem(RECENTS_KEY);
+    const parsed = value ? JSON.parse(value) : [];
+    const saved = Array.isArray(parsed) ? parsed : [];
+
+    // Keep the same schema as Landing.jsx: an ordered array of tool IDs.
+    const updated = [
+      id,
+      ...saved.filter((savedId) => typeof savedId === "string" && savedId !== id),
+    ].slice(0, MAX_RECENTS);
+
+    window.localStorage.setItem(RECENTS_KEY, JSON.stringify(updated));
+  } catch {
+    // Browsers with disabled/unavailable storage should still navigate normally.
+  }
 }
 
 export default function App() {
@@ -50,7 +72,12 @@ export default function App() {
 
   const { hash, active } = route;
 
-  // Update browser metadata for each tool.
+  // Record visits regardless of navigation source: directory, related cards,
+  // command palette, bookmarked URLs, or browser history.
+  useEffect(() => {
+    recordRecentTool(active);
+  }, [active]);
+
   useEffect(() => {
     document.title = active
       ? `${descriptions[active].title} — ToolVerse`
@@ -65,7 +92,6 @@ export default function App() {
       ?.setAttribute("content", description);
   }, [active]);
 
-  // Scroll after the correct page has rendered.
   useEffect(() => {
     if (active) {
       window.scrollTo({
@@ -110,19 +136,14 @@ export default function App() {
 
     setRoute({
       hash,
-      active: Object.hasOwn(descriptions, hash)
-        ? hash
-        : "",
+      active: Object.hasOwn(descriptions, hash) ? hash : "",
     });
   }
 
   return (
     <SiteLayout>
       {active ? (
-        <ToolPage
-          id={active}
-          onBack={() => navigate("tools")}
-        />
+        <ToolPage id={active} onBack={() => navigate("tools")} />
       ) : (
         <Landing onOpenTool={navigate} />
       )}
