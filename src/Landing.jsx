@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
   ArrowRight,
@@ -14,27 +14,78 @@ import {
   GitBranch,
   HeartHandshake,
   ArrowUpRight,
+  X,
+  Command,
 } from "lucide-react";
 
 
 
 import { tools, categories } from "./toolData";
 
-export default function Landing() {
+// Tool metadata is static: prepare searchable text only once.
+const searchableTools = tools.map((tool) => ({
+  tool,
+  keywords: `${tool.name} ${tool.description} ${tool.category}`.toLocaleLowerCase(),
+}));
+
+const popularToolNames = [
+  "Image Compressor",
+  "QR Code Generator",
+  "JSON Formatter",
+  "Word Counter",
+];
+
+const popularTools = popularToolNames
+  .map((name) => tools.find((tool) => tool.name === name))
+  .filter(Boolean);
+
+const navigateToTool = (id) => {
+  window.location.hash = id;
+};
+
+
+export default function Landing({ onOpenTool = navigateToTool }) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All tools");
+  const searchRef = useRef(null);
+  const query = search.trim().toLocaleLowerCase();
 
-  const filtered = tools.filter((tool) => {
-    const matchesCategory =
-      category === "All tools" || tool.category === category;
+  // Keyboard shortcut: press / (or Ctrl/Cmd+K) to jump to search.
+  useEffect(() => {
+    function handleKeyDown(event) {
+      const target = event.target;
+      const typing = target instanceof HTMLElement &&
+        (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
+      if ((event.key === "/" && !typing) || ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k")) {
+        event.preventDefault();
+        searchRef.current?.focus();
+      }
+      if (event.key === "Escape" && document.activeElement === searchRef.current) {
+        setSearch("");
+        searchRef.current?.blur();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
-    const matchesSearch =
-      `${tool.name} ${tool.description} ${tool.category}`
-        .toLowerCase()
-        .includes(search.trim().toLowerCase());
+  const showResults = () => {
+    const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    document.getElementById("tools")?.scrollIntoView({
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+      block: "start",
+    });
+  };
 
-    return matchesCategory && matchesSearch;
-  });
+  const filtered = useMemo(
+    () => searchableTools
+      .filter(({ tool, keywords }) =>
+        (category === "All tools" || tool.category === category) &&
+        (!query || keywords.includes(query))
+      )
+      .map(({ tool }) => tool),
+    [category, query]
+  );
 
   return (
     <main className="relative flex-1 overflow-hidden">
@@ -56,6 +107,42 @@ export default function Landing() {
             Powerful little tools for your everyday workflow. Edit images,
             transform text, format code, and get things done — all in one place.
           </p>
+
+          {/* Prominent search: shares state with the category filters below. */}
+          <div role="search" className="mx-auto mt-9 w-full max-w-2xl">
+            <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-white/15 bg-[#111b29] px-3 py-2 transition-colors duration-150 focus-within:border-cyan-300/60 sm:gap-3 sm:px-5 sm:py-2.5">
+              <Search size={21} className="shrink-0 text-slate-400" aria-hidden="true" />
+              <input
+                ref={searchRef}
+                type="text"
+                inputMode="search"
+                autoComplete="off"
+                spellCheck={false}
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                onKeyDown={(event) => { if (event.key === "Enter") showResults(); }}
+                placeholder="Try image compressor, QR code, JSON..."
+                aria-label="Search all ToolVerse tools"
+                aria-controls="tool-results"
+                className="block min-w-0 w-0 flex-1 appearance-none rounded-none border-0 bg-transparent p-0 py-2 text-sm text-white shadow-none ring-0 outline-none placeholder:text-slate-500 focus:border-0 focus:shadow-none focus:ring-0 focus:outline-none focus-visible:outline-none focus-visible:ring-0 sm:text-base"
+                style={{ outline: "none", boxShadow: "none", WebkitAppearance: "none" }}
+              />
+              {search ? (
+                <button type="button" onClick={() => {setSearch(""); searchRef.current?.focus();}} aria-label="Clear search" className="shrink-0 rounded-md p-1.5 text-slate-400 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-200"><X size={18} /></button>
+              ) : (
+                <kbd className="hidden items-center gap-1 rounded-md border border-white/10 px-2 py-1 text-xs text-slate-500 sm:inline-flex"><Command size={12} /> K</kbd>
+              )}
+              <button type="button" onClick={showResults} className="shrink-0 rounded-xl bg-cyan-400 px-3 py-2.5 text-xs font-semibold text-slate-950 transition-colors hover:bg-cyan-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200 sm:px-4 sm:text-sm">Search</button>
+            </div>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-400">
+              <span className="mr-1">Popular:</span>
+              {popularTools.map((tool) => (
+                <button key={tool.id} type="button" onClick={() => onOpenTool(tool.id)} className="rounded-full border border-white/10 bg-white/[.04] px-3 py-1.5 text-slate-300 hover:border-cyan-300/40 hover:text-cyan-200">
+                  {tool.name}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
             <a
@@ -106,22 +193,17 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Search */}
-          <div className="mb-5 flex w-full max-w-xl items-center gap-3 rounded-xl border border-white/10 bg-[#111a29] px-4 py-3.5 text-slate-400 transition-colors focus-within:border-cyan-400/50">
-            <Search size={19} aria-hidden="true" />
-
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search for a tool..."
-              aria-label="Search tools"
-              className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
-            />
-
-            <kbd className="hidden rounded-md border border-white/10 px-2 py-1 text-[10px] text-slate-500 sm:inline">
-              SEARCH
-            </kbd>
+          {/* Active search summary */}
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3" aria-live="polite">
+            <p className="text-sm text-slate-400">
+              <span className="font-semibold text-white">{filtered.length}</span> of {tools.length} tools
+              {query && <> matching <span className="font-medium text-cyan-200">“{search.trim()}”</span></>}
+            </p>
+            {(search || category !== "All tools") && (
+              <button type="button" onClick={() => { setSearch(""); setCategory("All tools"); }} className="inline-flex items-center gap-1.5 text-xs text-cyan-300 hover:text-cyan-200">
+                <X size={14}/> Reset filters
+              </button>
+            )}
           </div>
 
           {/* Category filters */}
@@ -148,7 +230,7 @@ export default function Landing() {
           </div>
 
           {/* Tool cards */}
-          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+          <div id="tool-results" className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
             {filtered.map((tool) => {
               const Icon = tool.icon;
 
@@ -157,13 +239,10 @@ export default function Landing() {
                   type="button"
                   key={tool.id}
                   onClick={() => onOpenTool(tool.id)}
-                  className="group relative flex min-h-[200px] flex-col sm:min-h-[226px] items-start overflow-hidden rounded-[22px] border border-white/[.09] bg-gradient-to-br from-[#162132] to-[#101722] p-6 text-left shadow-[0_12px_25px_rgba(0,0,0,.12)] transition duration-300 hover:-translate-y-1.5 hover:border-cyan-300/60 hover:shadow-[0_0_30px_rgba(34,211,238,.13),0_20px_45px_rgba(0,0,0,.28)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400"
+                  className="group relative flex min-h-[200px] flex-col items-start overflow-hidden rounded-[22px] border border-white/[.09] bg-gradient-to-br from-[#162132] to-[#101722] p-6 text-left transition-colors duration-150 hover:border-cyan-300/45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 sm:min-h-[226px]"
                 >
-                  {/* Hover glow */}
-                  <span className="pointer-events-none absolute -right-14 -top-14 h-36 w-36 rounded-full bg-cyan-400/[.045] blur-3xl transition duration-300 group-hover:scale-150 group-hover:bg-cyan-400/[.12]" />
-
                   {/* Tool icon */}
-                  <span className="mb-6 grid h-12 w-12 place-items-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300 transition duration-300 group-hover:scale-110 group-hover:rotate-3">
+                  <span className="mb-6 grid h-12 w-12 place-items-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300 ">
                     <Icon size={23} />
                   </span>
 
@@ -179,7 +258,7 @@ export default function Landing() {
                     {tool.description}
                   </span>
 
-                  <span className="absolute right-6 top-7 text-slate-500 transition duration-300 group-hover:translate-x-1 group-hover:text-cyan-300">
+                  <span className="absolute right-6 top-7 text-slate-500 transition-colors group-hover:text-cyan-300">
                     <ArrowRight size={18} />
                   </span>
                 </button>
@@ -229,7 +308,7 @@ export default function Landing() {
               { icon: ShieldCheck, title: "Privacy-conscious", text: "Tools are designed to process data in your browser wherever possible." },
               { icon: Globe2, title: "One place for more", text: "Images, writing, calculations, developer helpers and utilities together." },
             ].map(({ icon: Icon, title, text }) => (
-              <div key={title} className="group relative overflow-hidden rounded-[22px] border border-white/10 bg-gradient-to-br from-[#14263a] to-[#0b1220] p-6 transition duration-300 hover:-translate-y-1 hover:border-cyan-400/40 hover:shadow-[0_0_35px_rgba(34,211,238,.09)]">
+              <div key={title} className="relative overflow-hidden rounded-[22px] border border-white/10 bg-gradient-to-br from-[#14263a] to-[#0b1220] p-6 transition-colors hover:border-cyan-400/40">
                 <span className="pointer-events-none absolute -right-16 -top-16 h-36 w-36 rounded-full bg-cyan-400/[.07] blur-3xl" />
                 <span className="mb-6 grid h-11 w-11 place-items-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300"><Icon size={21} /></span>
                 <h3 className="text-base font-semibold text-white">{title}</h3>
@@ -318,7 +397,7 @@ export default function Landing() {
               <p className="mt-4 text-sm leading-7 text-slate-300">Feel free to contact me for improvement advice, bug reports, feature suggestions or general feedback. Your ideas can help shape what comes next.</p>
             </div>
             <div className="flex shrink-0 flex-col gap-3">
-              <a href="mailto:galvoid.tech@gmail.com?subject=ToolVerse%20Feedback" className="inline-flex items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-5 py-3.5 text-sm font-bold text-slate-950 shadow-[0_0_28px_rgba(34,211,238,.2)] transition hover:-translate-y-0.5 hover:brightness-110"><Mail size={18} /> Send feedback <ArrowUpRight size={16} /></a>
+              <a href="mailto:galvoid.tech@gmail.com?subject=ToolVerse%20Feedback" className="inline-flex items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-5 py-3.5 text-sm font-bold text-slate-950 shadow-[0_0_28px_rgba(34,211,238,.2)] transition-colors hover:brightness-110"><Mail size={18} /> Send feedback <ArrowUpRight size={16} /></a>
               <a href="https://github.com/Tanvir-Azad-Mahir" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/[.05] px-5 py-3 text-sm font-semibold text-white transition hover:border-cyan-300/40 hover:bg-white/10"><GitBranch size={17} /> Developer's GitHub <ArrowUpRight size={15} /></a>
             </div>
           </div>
