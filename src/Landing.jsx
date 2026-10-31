@@ -23,9 +23,8 @@ import {
   ArrowDown,
 } from "lucide-react";
 
-
-
 import { tools, categories } from "./toolData";
+import { triggerAdWithFrequency } from "./utils/monetag";
 
 // Tool metadata is static: prepare searchable text only once.
 const searchableTools = tools.map((tool) => ({
@@ -47,7 +46,6 @@ const popularTools = popularToolNames
 const navigateToTool = (id) => {
   window.location.hash = id;
 };
-
 
 const FAVORITES_KEY = "toolverse:favorites:v1";
 const RECENTS_KEY = "toolverse:recents:v1";
@@ -103,10 +101,13 @@ export default function Landing({ onOpenTool = navigateToTool }) {
 
   function openTool(id) {
     const key = String(id);
-    setRecents((previous) => [key, ...previous.filter((item) => item !== key)].slice(0, MAX_RECENTS));
-    onOpenTool(id);
+    
+    // Rate-limited ad trigger before opening any tool
+    triggerAdWithFrequency(() => {
+      setRecents((previous) => [key, ...previous.filter((item) => item !== key)].slice(0, MAX_RECENTS));
+      onOpenTool(id);
+    }, { actionsPerAd: 3, cooldownSeconds: 30 });
   }
-
 
   // Keep the existing "/" shortcut for the inline search.
   // Ctrl/Cmd+K now opens the command palette, even while typing.
