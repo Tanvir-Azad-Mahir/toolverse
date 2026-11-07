@@ -49,14 +49,28 @@ const popularShortcuts = [
   { name: "UUID Generator", id: "uuid" },
 ];
 
-export default function SiteLayout({ children }) {
+export default function SiteLayout({ children, active = "" }) {
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [scrolledPastHero, setScrolledPastHero] = useState(false);
 
   useEffect(() => {
     const closeMenu = () => setMobileMenu(false);
     window.addEventListener("hashchange", closeMenu);
     return () => window.removeEventListener("hashchange", closeMenu);
   }, []);
+
+  useEffect(() => {
+    function handleScroll() {
+      if (active) {
+        setScrolledPastHero(true);
+        return;
+      }
+      setScrolledPastHero(window.scrollY > 320);
+    }
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [active]);
 
   function triggerPalette() {
     window.dispatchEvent(new CustomEvent("toolverse:open-palette"));
@@ -76,7 +90,17 @@ export default function SiteLayout({ children }) {
 
       <div className="relative z-10 flex min-h-screen flex-col">
         {/* ================= HEADER ================= */}
-        <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#090A0F]/85 shadow-lg shadow-black/25 backdrop-blur-xl">
+        <header
+          className={`border-b border-white/[0.08] bg-[#090A0F]/90 shadow-lg shadow-black/30 backdrop-blur-xl transition-all duration-300 ${
+            active
+              ? "sticky top-0 z-50 translate-y-0 opacity-100 pointer-events-auto"
+              : `fixed top-0 left-0 right-0 z-50 ${
+                  scrolledPastHero
+                    ? "translate-y-0 opacity-100 pointer-events-auto"
+                    : "-translate-y-full opacity-0 pointer-events-none"
+                }`
+          }`}
+        >
           <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-8 lg:px-10">
             {/* Logo */}
             <a

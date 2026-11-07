@@ -141,7 +141,7 @@ export default function App() {
   }
 
   return (
-    <SiteLayout>
+    <SiteLayout active={active}>
       {active ? (
         <ToolPage id={active} onBack={() => navigate("tools")} />
       ) : (

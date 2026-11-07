@@ -1,20 +1,79 @@
-
 <!doctype html>
 <html lang="en">
   <head>
     <script src="https://quge5.com/88/tag.min.js" data-zone="304008" async data-cfasync="false"></script>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#000000" />
 
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1"
+    <!-- Fonts: Plus Jakarta Sans with font-display: block -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
     />
-    
 
-    <meta name="theme-color" content="#080d16" />
+    <!-- Entrance synchronization script -->
+    <script>
+      (function () {
+        if (
+          window.matchMedia &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        )
+          return;
+        var d = document.documentElement;
+        d.classList.add('anim');
+        var started = false;
+        function clean() {
+          window.removeEventListener('animationend', onEnd, true);
+          d.classList.remove('anim');
+          d.classList.remove('go');
+        }
+        function onEnd(e) {
+          if (
+            e.animationName === 'pillIn' &&
+            e.target &&
+            e.target.classList &&
+            e.target.classList.contains('btn-ghost')
+          ) {
+            clean();
+          }
+        }
+        function start() {
+          if (started) return;
+          started = true;
+          window.addEventListener('animationend', onEnd, true);
+          setTimeout(clean, 2600);
+          d.classList.add('go');
+        }
+        var bootTimer = setTimeout(start, 900);
+        function boot() {
+          if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(
+              function () {
+                clearTimeout(bootTimer);
+                start();
+              },
+              function () {
+                clearTimeout(bootTimer);
+                start();
+              }
+            );
+          } else {
+            start();
+          }
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', boot);
+        } else {
+          boot();
+        }
+      })();
+    </script>
 
     <!-- Primary SEO -->
-    <title>ToolVerse — Free Online Tools for Everyday Tasks</title>
+    <title>ToolVerse — Cross-border finance & utilities</title>
 
     <meta
       name="description"
@@ -27,67 +86,33 @@
     />
 
     <meta name="robots" content="index, follow" />
-
     <meta name="author" content="Tanvir Azad Mahir" />
 
     <!-- Canonical URL -->
-    <link
-      rel="canonical"
-      href="https://tooluniverse.pages.dev/"
-    />
+    <link rel="canonical" href="https://tooluniverse.pages.dev/" />
 
     <!-- Favicon -->
-    <link
-      rel="icon"
-      type="image/png"
-      href="/log2.png"
-    />
+    <link rel="icon" type="image/png" href="/log2.png" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
-
     <meta property="og:site_name" content="ToolVerse" />
-
-    <meta
-      property="og:title"
-      content="ToolVerse — Free Online Tools"
-    />
-
+    <meta property="og:title" content="ToolVerse — Cross-border finance" />
     <meta
       property="og:description"
       content="A collection of free online tools for images, PDFs, text, developers and everyday tasks. Fast, simple and no signup required."
     />
-
-    <meta
-      property="og:url"
-      content="https://tooluniverse.pages.dev/"
-    />
-
-    <meta
-      property="og:image"
-      content="https://tooluniverse.pages.dev/log2.png"
-    />
+    <meta property="og:url" content="https://tooluniverse.pages.dev/" />
+    <meta property="og:image" content="https://tooluniverse.pages.dev/log2.png" />
 
     <!-- Twitter / X -->
-    <meta
-      name="twitter:card"
-      content="summary"
-    />
-
-    <meta
-      name="twitter:title"
-      content="ToolVerse — Free Online Tools"
-    />
-
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="ToolVerse — Cross-border finance" />
     <meta
       name="twitter:description"
       content="Free browser-based tools for images, PDFs, text, developers and more."
     />
-
-    <meta
-      name="twitter:image"
-      content="https://tooluniverse.pages.dev/log2.png"
-    />
+    <meta name="twitter:image" content="https://tooluniverse.pages.dev/log2.png" />
 
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -109,9 +134,6 @@
   <body>
     <div id="root"></div>
 
-    <script
-      type="module"
-      src="/src/main.jsx"
-    ></script>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

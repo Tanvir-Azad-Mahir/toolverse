@@ -7,7 +7,6 @@ import {
   ArrowUpRight,
   Check,
   ChevronDown,
-  ChevronRight,
   Clock3,
   Command,
   Copy,
@@ -22,7 +21,6 @@ import {
   RefreshCw,
   Search,
   ShieldCheck,
-  Sparkles,
   Star,
   X,
   Zap,
@@ -129,6 +127,9 @@ export default function Landing({ onOpenTool }) {
   const searchRef = useRef(null);
   const paletteRef = useRef(null);
   const paletteDialogRef = useRef(null);
+  const videoARef = useRef(null);
+  const videoBRef = useRef(null);
+  const [heroMenuOpen, setHeroMenuOpen] = useState(false);
 
   const query = search.trim().toLowerCase();
   const favoriteSet = useMemo(() => new Set(favorites), [favorites]);
@@ -253,6 +254,60 @@ export default function Landing({ onOpenTool }) {
     paletteRef.current?.focus();
     return () => previous?.focus?.();
   }, [paletteOpen]);
+
+  // Dual video background seamless crossfade loop
+  useEffect(() => {
+    const vA = videoARef.current;
+    const vB = videoBRef.current;
+    if (!vA || !vB) return;
+
+    const FADE = 0.9;
+    let cur = vA;
+    let nxt = vB;
+
+    function onTime() {
+      if (cur.duration && cur.currentTime >= cur.duration - FADE) {
+        cur.removeEventListener("timeupdate", onTime);
+        nxt.currentTime = 0;
+        const p = nxt.play();
+        if (p && typeof p.catch === "function") p.catch(() => {});
+        nxt.classList.add("is-active");
+        cur.classList.remove("is-active");
+        const old = cur;
+        cur = nxt;
+        nxt = old;
+        cur.addEventListener("timeupdate", onTime);
+      }
+    }
+
+    const p = cur.play();
+    if (p && typeof p.catch === "function") p.catch(() => {});
+    cur.addEventListener("timeupdate", onTime);
+
+    return () => {
+      vA.removeEventListener("timeupdate", onTime);
+      vB.removeEventListener("timeupdate", onTime);
+    };
+  }, []);
+
+  // Mobile drawer menu outside click & Escape listener
+  useEffect(() => {
+    if (!heroMenuOpen) return;
+    function handleKeyDown(e) {
+      if (e.key === "Escape") setHeroMenuOpen(false);
+    }
+    function handleClickOutside(e) {
+      if (!e.target.closest("#menu") && !e.target.closest("#burger")) {
+        setHeroMenuOpen(false);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("click", handleClickOutside);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("click", handleClickOutside);
+    };
+  }, [heroMenuOpen]);
 
   const paletteResults = useMemo(() => {
     const q = paletteQuery.trim().toLowerCase();
@@ -449,306 +504,445 @@ export default function Landing({ onOpenTool }) {
       )}
 
       {/* ================= HERO SECTION ================= */}
-      <section className="relative mx-auto flex max-w-7xl flex-col items-center px-4 pb-16 pt-16 text-center sm:px-8 sm:pb-24 sm:pt-24 lg:px-10 lg:pt-28">
-        {/* Glow ambient highlight behind hero */}
+      <section className="hero">
         <div
-          aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-10 h-[380px] w-full max-w-4xl -translate-x-1/2 rounded-full bg-gradient-to-tr from-emerald-500/10 via-teal-500/10 to-transparent blur-[120px]"
-        />
-
-        {/* Announcement Pill */}
-        <div className="relative mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/[0.08] px-4 py-1.5 text-xs font-semibold text-emerald-300 shadow-sm backdrop-blur-md transition-all hover:border-emerald-500/50 hover:bg-emerald-500/[0.12]">
-          <Sparkles size={14} className="text-emerald-400 animate-pulse" />
-          <span>ToolVerse 2.0 • 22+ Client-Side Utilities</span>
-          <span className="text-emerald-500/40">|</span>
-          <span className="text-slate-300">100% In-Memory</span>
-          <ChevronRight size={13} className="text-emerald-400" />
+          className="bg"
+          role="img"
+          aria-label="Stylised globe of Earth rendered as a purple dot matrix against a starfield, slowly rotating"
+        >
+          <video
+            ref={videoARef}
+            className="bg-video is-active"
+            id="bgVideoA"
+            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260912_104036_bd6924f6-3c8e-417e-8465-6d03c8c2e9e6.mp4"
+            poster="https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/82e7eb75-c65f-490a-99b5-f3d1cad54200.webp"
+            autoPlay
+            muted
+            playsInline
+            loop
+            preload="auto"
+          />
+          <video
+            ref={videoBRef}
+            className="bg-video"
+            id="bgVideoB"
+            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260912_104036_bd6924f6-3c8e-417e-8465-6d03c8c2e9e6.mp4"
+            poster="https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/82e7eb75-c65f-490a-99b5-f3d1cad54200.webp"
+            muted
+            playsInline
+            preload="auto"
+          />
         </div>
 
-        {/* Main H1 Headline */}
-        <h1 className="max-w-4xl text-4xl font-black tracking-tight text-white sm:text-6xl lg:text-7xl lg:leading-[1.08]">
-          The developer & creator{" "}
-          <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
-            multi-tool.
-          </span>
-        </h1>
-
-        {/* Subtitle */}
-        <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-slate-300 sm:text-lg">
-          Compress images, format JSON, inspect tokens, generate cryptographic passwords, and clean
-          text. <strong>100% private in your browser</strong> with zero cloud uploads and zero
-          latency.
-        </p>
-
-        {/* Prominent Search Bar */}
-        <div role="search" className="relative z-10 mx-auto mt-10 w-full max-w-2xl">
-          <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-[#101522]/90 p-2 shadow-2xl shadow-black/60 ring-1 ring-white/5 backdrop-blur-xl transition-all focus-within:border-emerald-500/60 focus-within:ring-2 focus-within:ring-emerald-500/20 sm:p-2.5">
-            <Search size={20} className="ml-3 shrink-0 text-slate-400" />
-            <input
-              ref={searchRef}
-              type="text"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Search all 22 tools (e.g. compress, qr, json, jwt)..."
-              aria-label="Search all tools"
-              className="min-w-0 flex-1 border-0 bg-transparent text-sm text-white placeholder-slate-500 outline-none focus:ring-0 sm:text-base"
-            />
-            {search ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearch("");
-                  searchRef.current?.focus();
-                }}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-white"
-                aria-label="Clear search"
-              >
-                <X size={16} />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setPaletteOpen(true)}
-                className="hidden items-center gap-1 rounded-lg border border-white/10 bg-white/[0.05] px-2 py-1 text-xs text-slate-400 hover:border-emerald-500/30 hover:text-white sm:flex"
-              >
-                <Command size={12} /> K
-              </button>
-            )}
-            <a
-              href="#tools"
-              className="shrink-0 rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-bold text-[#022c22] shadow-sm transition-all hover:bg-emerald-400 hover:shadow-emerald-500/30 sm:px-5 sm:text-sm"
+        <header className="nav">
+          <a href="#" className="logo">
+            <img src="/log2.png" alt="ToolVerse logo" />
+            <span>ToolVerse</span>
+          </a>
+          <nav className="nav-links" aria-label="Primary">
+            <a href="#tools">Products</a>
+            <a href="#features">Pricing</a>
+            <a href="#developers">Developers</a>
+            <a href="#how-it-works">Resources</a>
+            <a href="#contact">Contact Sales</a>
+          </nav>
+          <div className="nav-actions">
+            <button
+              type="button"
+              className="btn btn-login"
+              onClick={() => setPaletteOpen(true)}
             >
-              Explore
+              Login
+            </button>
+            <a href="#tools" className="btn btn-nav-start">
+              <span>Get Started</span>
+              <svg className="arw" viewBox="0 0 12 10" fill="none" aria-hidden="true">
+                <path
+                  d="M0.8 5h10M7.1 1.4 10.9 5l-3.8 3.6"
+                  stroke="currentColor"
+                  strokeWidth="1.35"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </a>
           </div>
+          <button
+            className="burger"
+            id="burger"
+            type="button"
+            aria-label="Open menu"
+            aria-expanded={heroMenuOpen}
+            aria-controls="menu"
+            onClick={() => setHeroMenuOpen((open) => !open)}
+          >
+            <span />
+          </button>
+        </header>
 
-          {/* Popular quick tags */}
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-400">
-            <span className="font-medium text-slate-500">Quick Jump:</span>
-            {popularTools.map((tool) => (
-              <button
-                key={tool.id}
-                type="button"
-                onClick={() => openTool(tool.id)}
-                className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 font-medium text-slate-300 transition-all hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300"
-              >
-                {tool.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* ================= INTERACTIVE HERO PLAYGROUND ================= */}
-        <div className="mt-12 w-full max-w-3xl rounded-2xl border border-white/10 bg-[#0E131E]/90 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Interactive Instant Sandbox</span>
-            </div>
-
-            {/* Sandbox Tabs */}
-            <div className="flex rounded-lg border border-white/10 bg-white/[0.02] p-1">
-              <button
-                type="button"
-                onClick={() => setHeroTab("text")}
-                className={`rounded-md px-3 py-1 text-xs font-semibold transition-all ${
-                  heroTab === "text"
-                    ? "bg-emerald-500/20 text-emerald-300 shadow-sm"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Live Text Stats
-              </button>
-              <button
-                type="button"
-                onClick={() => setHeroTab("password")}
-                className={`rounded-md px-3 py-1 text-xs font-semibold transition-all ${
-                  heroTab === "password"
-                    ? "bg-emerald-500/20 text-emerald-300 shadow-sm"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Instant Password
-              </button>
-              <button
-                type="button"
-                onClick={() => setHeroTab("qr")}
-                className={`rounded-md px-3 py-1 text-xs font-semibold transition-all ${
-                  heroTab === "qr"
-                    ? "bg-emerald-500/20 text-emerald-300 shadow-sm"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Live QR Preview
-              </button>
-            </div>
-          </div>
-
-          {/* Tab 1: Live Text & Case */}
-          {heroTab === "text" && (
-            <div className="mt-4 text-left">
-              <textarea
-                value={heroText}
-                onChange={(e) => setHeroText(e.target.value)}
-                placeholder="Type or paste any text to see real-time character & word analysis..."
-                rows={3}
-                className="w-full resize-none rounded-xl border border-white/10 bg-[#090D15] p-3 text-sm text-slate-200 outline-none transition focus:border-emerald-500/50"
+        <nav
+          className={`menu ${heroMenuOpen ? "open is-open" : ""}`}
+          id="menu"
+          aria-label="Mobile"
+        >
+          <a href="#tools" onClick={() => setHeroMenuOpen(false)}>
+            Products
+          </a>
+          <a href="#features" onClick={() => setHeroMenuOpen(false)}>
+            Pricing
+          </a>
+          <a href="#developers" onClick={() => setHeroMenuOpen(false)}>
+            Developers
+          </a>
+          <a href="#how-it-works" onClick={() => setHeroMenuOpen(false)}>
+            Resources
+          </a>
+          <a href="#contact" onClick={() => setHeroMenuOpen(false)}>
+            Contact Sales
+          </a>
+          <div className="divider" />
+          <button
+            type="button"
+            className="btn btn-login"
+            style={{ width: "100%", marginBottom: "8px" }}
+            onClick={() => {
+              setHeroMenuOpen(false);
+              setPaletteOpen(true);
+            }}
+          >
+            Login (⌘K)
+          </button>
+          <a
+            href="#tools"
+            className="m-start"
+            onClick={() => setHeroMenuOpen(false)}
+          >
+            <span>Get Started</span>
+            <svg className="arw" viewBox="0 0 12 10" fill="none" aria-hidden="true">
+              <path
+                d="M0.8 5h10M7.1 1.4 10.9 5l-3.8 3.6"
+                stroke="currentColor"
+                strokeWidth="1.35"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-4 text-xs font-medium text-slate-400">
-                  <span>
-                    Words: <strong className="text-white">{heroWords}</strong>
-                  </span>
-                  <span>
-                    Characters: <strong className="text-white">{heroChars}</strong>
-                  </span>
-                  <span>
-                    Reading time:{" "}
-                    <strong className="text-white">
-                      {Math.max(1, Math.ceil(heroWords / 200))} min
-                    </strong>
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setHeroText(heroText.toUpperCase())}
-                    className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-slate-300 hover:bg-white/[0.08]"
-                  >
-                    UPPER
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setHeroText(heroText.toLowerCase())}
-                    className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-slate-300 hover:bg-white/[0.08]"
-                  >
-                    lower
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(heroText);
-                      setHeroCopied(true);
-                      setTimeout(() => setHeroCopied(false), 2000);
-                    }}
-                    className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-300 hover:bg-emerald-500/20"
-                  >
-                    {heroCopied ? <Check size={12} /> : <Copy size={12} />}
-                    <span>{heroCopied ? "Copied" : "Copy"}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+            </svg>
+          </a>
+        </nav>
 
-          {/* Tab 2: Instant Password */}
-          {heroTab === "password" && (
-            <div className="mt-4 text-left">
-              <div className="flex items-center gap-3">
-                <div className="flex-1 rounded-xl border border-white/10 bg-[#090D15] px-4 py-3 font-mono text-sm tracking-wider text-emerald-400">
-                  {heroPassword}
-                </div>
-                <button
-                  type="button"
-                  onClick={generateHeroPassword}
-                  className="flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-4 text-xs font-semibold text-white hover:bg-white/[0.09]"
-                >
-                  <RefreshCw size={14} /> Regenerate
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText(heroPassword);
-                    setHeroCopied(true);
-                    setTimeout(() => setHeroCopied(false), 2000);
-                  }}
-                  className="flex h-11 items-center gap-2 rounded-xl bg-emerald-500 px-4 text-xs font-bold text-[#022c22] hover:bg-emerald-400"
-                >
-                  {heroCopied ? <Check size={14} /> : <Copy size={14} />}
-                  <span>{heroCopied ? "Copied" : "Copy"}</span>
-                </button>
-              </div>
-              <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
-                <span>Length: {heroPassLength} chars</span>
-                <input
-                  type="range"
-                  min="8"
-                  max="32"
-                  value={heroPassLength}
-                  onChange={(e) => {
-                    setHeroPassLength(Number(e.target.value));
-                    generateHeroPassword();
-                  }}
-                  className="w-48 accent-emerald-500"
+        <div className="hero-inner">
+          <h1>
+            <span className="ln">
+              <span className="ln-i">Cross-border</span>
+            </span>
+            <span className="ln">
+              <span className="ln-i">finance</span>
+            </span>
+          </h1>
+          <p className="sub">
+            Accept payments, manage and custody your assets with ease,
+            <br />
+            enjoy seamless on/off-ramping between cryptocurrencies and fiat,
+            <br />
+            and explore integrated eCommerce solutions.
+          </p>
+          <div className="ctas">
+            <a href="#tools" className="btn btn-lg btn-primary">
+              <span>Get Started</span>
+              <svg className="arw" viewBox="0 0 12 10" fill="none" aria-hidden="true">
+                <path
+                  d="M0.8 5h10M7.1 1.4 10.9 5l-3.8 3.6"
+                  stroke="currentColor"
+                  strokeWidth="1.35"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
-                <span className="font-semibold text-emerald-400">Entropy: High</span>
-              </div>
-            </div>
-          )}
-
-          {/* Tab 3: Live QR Preview */}
-          {heroTab === "qr" && (
-            <div className="mt-4 flex flex-col items-center gap-4 text-left sm:flex-row">
-              <div className="flex-1 w-full">
-                <label className="mb-1 block text-xs font-medium text-slate-400">
-                  Target URL or Text:
-                </label>
-                <input
-                  type="text"
-                  value={heroQrInput}
-                  onChange={(e) => setHeroQrInput(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-[#090D15] p-3 text-sm text-slate-200 outline-none focus:border-emerald-500/50"
+              </svg>
+            </a>
+            <a href="#contact" className="btn btn-lg btn-ghost">
+              <span>Contact Sales</span>
+              <svg className="arw" viewBox="0 0 12 10" fill="none" aria-hidden="true">
+                <path
+                  d="M0.8 5h10M7.1 1.4 10.9 5l-3.8 3.6"
+                  stroke="currentColor"
+                  strokeWidth="1.35"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
-                <p className="mt-2 text-xs text-slate-400">
-                  Renders client-side in &lt;10ms. Open the full QR tool for custom colors & SVG.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => openTool("qr")}
-                  className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:underline"
-                >
-                  Open advanced QR generator <ArrowRight size={13} />
-                </button>
-              </div>
-              {heroQrUrl && (
-                <div className="rounded-xl border border-white/10 bg-white p-2 shadow-lg">
-                  <img src={heroQrUrl} alt="Live QR" className="h-28 w-28" />
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Metrics trust bar */}
-        <div className="mt-14 grid w-full max-w-4xl grid-cols-2 gap-4 border-t border-white/[0.08] pt-8 text-center sm:grid-cols-4">
-          <div className="flex flex-col items-center">
-            <span className="text-2xl font-black text-white sm:text-3xl">22+</span>
-            <span className="text-xs font-medium text-slate-400">Free Client Tools</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-2xl font-black text-emerald-400 sm:text-3xl">0 ms</span>
-            <span className="text-xs font-medium text-slate-400">Server Latency</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-2xl font-black text-teal-400 sm:text-3xl">100%</span>
-            <span className="text-xs font-medium text-slate-400">In-Browser Memory</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-2xl font-black text-white sm:text-3xl">Zero</span>
-            <span className="text-xs font-medium text-slate-400">Account Walls</span>
+              </svg>
+            </a>
           </div>
         </div>
       </section>
 
-      {/* ================= TOOL DIRECTORY ================= */}
+      {/* ================= TOOL DIRECTORY & WORKSPACE ================= */}
       <section
         id="tools"
         className="scroll-mt-20 border-t border-white/[0.08] bg-[#0A0D15]/80 py-16 sm:py-24"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-8 lg:px-10">
+          {/* Prominent Search Bar & Quick Jump */}
+          <div role="search" className="relative z-10 mx-auto mb-12 max-w-2xl">
+            <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-[#101522]/90 p-2 shadow-2xl shadow-black/60 ring-1 ring-white/5 backdrop-blur-xl transition-all focus-within:border-emerald-500/60 focus-within:ring-2 focus-within:ring-emerald-500/20 sm:p-2.5">
+              <Search size={20} className="ml-3 shrink-0 text-slate-400" />
+              <input
+                ref={searchRef}
+                type="text"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder="Search all 22 tools (e.g. compress, qr, json, jwt)..."
+                aria-label="Search all tools"
+                className="min-w-0 flex-1 border-0 bg-transparent text-sm text-white placeholder-slate-500 outline-none focus:ring-0 sm:text-base"
+              />
+              {search ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch("");
+                    searchRef.current?.focus();
+                  }}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-white"
+                  aria-label="Clear search"
+                >
+                  <X size={16} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setPaletteOpen(true)}
+                  className="hidden items-center gap-1 rounded-lg border border-white/10 bg-white/[0.05] px-2 py-1 text-xs text-slate-400 hover:border-emerald-500/30 hover:text-white sm:flex"
+                >
+                  <Command size={12} /> K
+                </button>
+              )}
+              <a
+                href="#tool-results"
+                className="shrink-0 rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-bold text-[#022c22] shadow-sm transition-all hover:bg-emerald-400 hover:shadow-emerald-500/30 sm:px-5 sm:text-sm"
+              >
+                Find
+              </a>
+            </div>
+
+            {/* Popular quick tags */}
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-400">
+              <span className="font-medium text-slate-500">Quick Jump:</span>
+              {popularTools.map((tool) => (
+                <button
+                  key={tool.id}
+                  type="button"
+                  onClick={() => openTool(tool.id)}
+                  className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 font-medium text-slate-300 transition-all hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300"
+                >
+                  {tool.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ================= INTERACTIVE HERO PLAYGROUND ================= */}
+          <div className="mx-auto mb-16 max-w-3xl rounded-2xl border border-white/10 bg-[#0E131E]/90 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
+                <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Interactive Instant Sandbox</span>
+              </div>
+
+              {/* Sandbox Tabs */}
+              <div className="flex rounded-lg border border-white/10 bg-white/[0.02] p-1">
+                <button
+                  type="button"
+                  onClick={() => setHeroTab("text")}
+                  className={`rounded-md px-3 py-1 text-xs font-semibold transition-all ${
+                    heroTab === "text"
+                      ? "bg-emerald-500/20 text-emerald-300 shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Live Text Stats
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHeroTab("password")}
+                  className={`rounded-md px-3 py-1 text-xs font-semibold transition-all ${
+                    heroTab === "password"
+                      ? "bg-emerald-500/20 text-emerald-300 shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Instant Password
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHeroTab("qr")}
+                  className={`rounded-md px-3 py-1 text-xs font-semibold transition-all ${
+                    heroTab === "qr"
+                      ? "bg-emerald-500/20 text-emerald-300 shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Live QR Preview
+                </button>
+              </div>
+            </div>
+
+            {/* Tab 1: Live Text & Case */}
+            {heroTab === "text" && (
+              <div className="mt-4 text-left">
+                <textarea
+                  value={heroText}
+                  onChange={(e) => setHeroText(e.target.value)}
+                  placeholder="Type or paste any text to see real-time character & word analysis..."
+                  rows={3}
+                  className="w-full resize-none rounded-xl border border-white/10 bg-[#090D15] p-3 text-sm text-slate-200 outline-none transition focus:border-emerald-500/50"
+                />
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-4 text-xs font-medium text-slate-400">
+                    <span>
+                      Words: <strong className="text-white">{heroWords}</strong>
+                    </span>
+                    <span>
+                      Characters: <strong className="text-white">{heroChars}</strong>
+                    </span>
+                    <span>
+                      Reading time:{" "}
+                      <strong className="text-white">
+                        {Math.max(1, Math.ceil(heroWords / 200))} min
+                      </strong>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setHeroText(heroText.toUpperCase())}
+                      className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-slate-300 hover:bg-white/[0.08]"
+                    >
+                      UPPER
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setHeroText(heroText.toLowerCase())}
+                      className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-slate-300 hover:bg-white/[0.08]"
+                    >
+                      lower
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(heroText);
+                        setHeroCopied(true);
+                        setTimeout(() => setHeroCopied(false), 2000);
+                      }}
+                      className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-300 hover:bg-emerald-500/20"
+                    >
+                      {heroCopied ? <Check size={12} /> : <Copy size={12} />}
+                      <span>{heroCopied ? "Copied" : "Copy"}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 2: Instant Password */}
+            {heroTab === "password" && (
+              <div className="mt-4 text-left">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 rounded-xl border border-white/10 bg-[#090D15] px-4 py-3 font-mono text-sm tracking-wider text-emerald-400">
+                    {heroPassword}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={generateHeroPassword}
+                    className="flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-4 text-xs font-semibold text-white hover:bg-white/[0.09]"
+                  >
+                    <RefreshCw size={14} /> Regenerate
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(heroPassword);
+                      setHeroCopied(true);
+                      setTimeout(() => setHeroCopied(false), 2000);
+                    }}
+                    className="flex h-11 items-center gap-2 rounded-xl bg-emerald-500 px-4 text-xs font-bold text-[#022c22] hover:bg-emerald-400"
+                  >
+                    {heroCopied ? <Check size={14} /> : <Copy size={14} />}
+                    <span>{heroCopied ? "Copied" : "Copy"}</span>
+                  </button>
+                </div>
+                <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
+                  <span>Length: {heroPassLength} chars</span>
+                  <input
+                    type="range"
+                    min="8"
+                    max="32"
+                    value={heroPassLength}
+                    onChange={(e) => {
+                      setHeroPassLength(Number(e.target.value));
+                      generateHeroPassword();
+                    }}
+                    className="w-48 accent-emerald-500"
+                  />
+                  <span className="font-semibold text-emerald-400">Entropy: High</span>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 3: Live QR Preview */}
+            {heroTab === "qr" && (
+              <div className="mt-4 flex flex-col items-center gap-4 text-left sm:flex-row">
+                <div className="flex-1 w-full">
+                  <label className="mb-1 block text-xs font-medium text-slate-400">
+                    Target URL or Text:
+                  </label>
+                  <input
+                    type="text"
+                    value={heroQrInput}
+                    onChange={(e) => setHeroQrInput(e.target.value)}
+                    className="w-full rounded-xl border border-white/10 bg-[#090D15] p-3 text-sm text-slate-200 outline-none focus:border-emerald-500/50"
+                  />
+                  <p className="mt-2 text-xs text-slate-400">
+                    Renders client-side in &lt;10ms. Open the full QR tool for custom colors & SVG.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => openTool("qr")}
+                    className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:underline"
+                  >
+                    Open advanced QR generator <ArrowRight size={13} />
+                  </button>
+                </div>
+                {heroQrUrl && (
+                  <div className="rounded-xl border border-white/10 bg-white p-2 shadow-lg">
+                    <img src={heroQrUrl} alt="Live QR" className="h-28 w-28" />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Metrics trust bar */}
+          <div className="mx-auto mb-16 grid w-full max-w-4xl grid-cols-2 gap-4 border-y border-white/[0.08] py-8 text-center sm:grid-cols-4">
+            <div className="flex flex-col items-center">
+              <span className="text-2xl font-black text-white sm:text-3xl">22+</span>
+              <span className="text-xs font-medium text-slate-400">Free Client Tools</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-2xl font-black text-emerald-400 sm:text-3xl">0 ms</span>
+              <span className="text-xs font-medium text-slate-400">Server Latency</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-2xl font-black text-teal-400 sm:text-3xl">100%</span>
+              <span className="text-xs font-medium text-slate-400">In-Browser Memory</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-2xl font-black text-white sm:text-3xl">Zero</span>
+              <span className="text-xs font-medium text-slate-400">Account Walls</span>
+            </div>
+          </div>
+
           {/* Header */}
           <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div>
