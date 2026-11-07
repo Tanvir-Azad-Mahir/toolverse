@@ -52,7 +52,7 @@ const VIEW_MODE_KEY = "toolverse:view_mode:v1";
 const MAX_RECENTS = 6;
 const TOOLS_PER_PAGE = 9;
 const HERO_VIDEO_SRC =
-  "https://res.cloudinary.com/p2x0mtjj/video/upload/q_auto:eco,w_1280,c_limit,f_auto/v1794063486/n.mp4";
+  "https://res.cloudinary.com/p2x0mtjj/video/upload/v1794079110/video_7981ac3c.mp4";
 const HERO_POSTER_SRC =
   "https://res.cloudinary.com/p2x0mtjj/image/upload/v1794065968/Image_cvftr6cvftr6cvft.jpg";
 const knownIds = new Set(tools.map((tool) => String(tool.id)));
