@@ -27,7 +27,6 @@ import {
 } from "lucide-react";
 
 import { tools, categories, categoryMeta } from "./toolData";
-import { triggerAdWithFrequency } from "./utils/monetag";
 
 const searchableTools = tools.map((tool) => ({
   tool,
@@ -52,6 +51,10 @@ const RECENTS_KEY = "toolverse:recents:v1";
 const VIEW_MODE_KEY = "toolverse:view_mode:v1";
 const MAX_RECENTS = 6;
 const TOOLS_PER_PAGE = 9;
+const HERO_VIDEO_SRC =
+  "https://res.cloudinary.com/p2x0mtjj/video/upload/q_auto:eco,w_1280,c_limit,f_auto/v1794063486/n.mp4";
+const HERO_POSTER_SRC =
+  "https://res.cloudinary.com/p2x0mtjj/image/upload/f_auto,q_auto,w_1920,c_limit/v1794063552/Gemini_Generated_Image_lhlq4elhlq4elhlq.jpg";
 const knownIds = new Set(tools.map((tool) => String(tool.id)));
 const toolById = new Map(tools.map((tool) => [String(tool.id), tool]));
 
@@ -75,16 +78,16 @@ function storeIds(key, ids) {
 
 const faqs = [
   {
-    q: "Are my files, tokens, or images uploaded to any server?",
-    a: "Never. All 22 tools in ToolVerse execute 100% client-side inside your browser sandbox using Canvas, WebCrypto, and WebAssembly. Your data never touches a remote server.",
+    q: "Are my files or input uploaded to a processing server?",
+    a: "ToolVerse tools are designed to process your input in your browser, without sending files to a separate processing server. The site may still load assets and advertising.",
   },
   {
     q: "Is ToolVerse completely free to use?",
-    a: "Yes, completely free forever with unlimited usage. There are no paid tiers, no account signups, and no artificial daily limits.",
+    a: "Yes. All listed tools are free to use, and no account is required.",
   },
   {
     q: "Can I use ToolVerse offline?",
-    a: "Once the website is loaded in your browser, all calculation, formatting, conversion, and encoding utilities continue working without an active internet connection.",
+    a: "Some tools can continue working in your browser after they load, but the website is not guaranteed to be fully available offline.",
   },
   {
     q: "How can I suggest a new tool or report an issue?",
@@ -109,11 +112,13 @@ export default function Landing({ onOpenTool }) {
 
   // Hero Quick Playground state
   const [heroTab, setHeroTab] = useState("text"); // text | password | qr
-  const [heroText, setHeroText] = useState("ToolVerse: 22+ client-side tools for modern developers.");
+  const [heroText, setHeroText] = useState(
+    "ToolVerse brings useful browser tools together—fast, simple, and private."
+  );
   const [heroCopied, setHeroCopied] = useState(false);
   const [heroPassword, setHeroPassword] = useState("tV7$mK9#xP2@qL5!");
   const [heroPassLength, setHeroPassLength] = useState(16);
-  const [heroQrInput, setHeroQrInput] = useState("https://tooluniverse.pages.dev");
+  const [heroQrInput, setHeroQrInput] = useState("ToolVerse - useful browser tools in one place");
   const [heroQrUrl, setHeroQrUrl] = useState("");
 
   // FAQ accordion state
@@ -160,15 +165,10 @@ export default function Landing({ onOpenTool }) {
 
   function openTool(id) {
     const key = String(id);
-    triggerAdWithFrequency(
-      () => {
-        setRecents((previous) =>
-          [key, ...previous.filter((item) => item !== key)].slice(0, MAX_RECENTS)
-        );
-        onOpenTool(id);
-      },
-      { actionsPerAd: 3, cooldownSeconds: 30 }
+    setRecents((previous) =>
+      [key, ...previous.filter((item) => item !== key)].slice(0, MAX_RECENTS)
     );
+    onOpenTool(id);
   }
 
   // Generate hero QR code preview
@@ -255,38 +255,79 @@ export default function Landing({ onOpenTool }) {
     return () => previous?.focus?.();
   }, [paletteOpen]);
 
-  // Dual video background seamless crossfade loop
+  // Crossfade the background videos while loading the second only shortly before needed.
   useEffect(() => {
     const vA = videoARef.current;
     const vB = videoBRef.current;
     if (!vA || !vB) return;
 
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const saveData = Boolean(navigator.connection?.saveData);
+    if (prefersReducedMotion || saveData) return;
+
     const FADE = 0.9;
+    const PRELOAD_AHEAD = 4;
     let cur = vA;
     let nxt = vB;
+    let preloadStarted = false;
+    let switching = false;
+    let active = true;
 
     function onTime() {
-      if (cur.duration && cur.currentTime >= cur.duration - FADE) {
-        cur.removeEventListener("timeupdate", onTime);
-        nxt.currentTime = 0;
-        const p = nxt.play();
-        if (p && typeof p.catch === "function") p.catch(() => {});
-        nxt.classList.add("is-active");
-        cur.classList.remove("is-active");
-        const old = cur;
-        cur = nxt;
-        nxt = old;
+      if (!cur.duration) return;
+      const timeRemaining = cur.duration - cur.currentTime;
+
+      if (!preloadStarted && timeRemaining <= FADE + PRELOAD_AHEAD) {
+        preloadStarted = true;
+        nxt.preload = "auto";
+        nxt.load();
+      }
+
+      if (timeRemaining > FADE || switching || nxt.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) {
+        return;
+      }
+
+      switching = true;
+      const previous = cur;
+      const next = nxt;
+      next.currentTime = 0;
+      const playback = next.play();
+
+      function finishSwitch() {
+        if (!active) return;
+        next.classList.add("is-active");
+        previous.classList.remove("is-active");
+        previous.removeEventListener("timeupdate", onTime);
+        cur = next;
+        nxt = previous;
+        preloadStarted = false;
+        switching = false;
         cur.addEventListener("timeupdate", onTime);
+      }
+
+      if (playback && typeof playback.then === "function") {
+        playback.then(finishSwitch).catch(() => {
+          switching = false;
+        });
+      } else {
+        finishSwitch();
       }
     }
 
     const p = cur.play();
-    if (p && typeof p.catch === "function") p.catch(() => {});
+    if (p && typeof p.then === "function") {
+      p.then(() => cur.classList.add("is-active")).catch(() => {});
+    } else {
+      cur.classList.add("is-active");
+    }
     cur.addEventListener("timeupdate", onTime);
 
     return () => {
+      active = false;
       vA.removeEventListener("timeupdate", onTime);
       vB.removeEventListener("timeupdate", onTime);
+      vA.pause();
+      vB.pause();
     };
   }, []);
 
@@ -372,7 +413,7 @@ export default function Landing({ onOpenTool }) {
   const heroChars = heroText.length;
 
   return (
-    <main className="relative flex-1">
+    <main className="landing-page relative flex-1">
       {/* ================= COMMAND PALETTE (⌘K) ================= */}
       {paletteOpen && (
         <div
@@ -508,29 +549,35 @@ export default function Landing({ onOpenTool }) {
         <div
           className="bg"
           role="img"
-          aria-label="Stylised globe of Earth rendered as a purple dot matrix against a starfield, slowly rotating"
+          aria-label="Digital globe rendered as a dot matrix against a starfield"
         >
+          <img
+            className="bg-poster"
+            src={HERO_POSTER_SRC}
+            alt=""
+            aria-hidden="true"
+            fetchPriority="high"
+            decoding="async"
+          />
           <video
             ref={videoARef}
-            className="bg-video is-active"
+            className="bg-video"
             id="bgVideoA"
-            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260912_104036_bd6924f6-3c8e-417e-8465-6d03c8c2e9e6.mp4"
-            poster="https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/82e7eb75-c65f-490a-99b5-f3d1cad54200.webp"
-            autoPlay
+            src={HERO_VIDEO_SRC}
             muted
             playsInline
             loop
-            preload="auto"
+            preload="none"
           />
           <video
             ref={videoBRef}
             className="bg-video"
             id="bgVideoB"
-            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260912_104036_bd6924f6-3c8e-417e-8465-6d03c8c2e9e6.mp4"
-            poster="https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/82e7eb75-c65f-490a-99b5-f3d1cad54200.webp"
+            src={HERO_VIDEO_SRC}
             muted
             playsInline
-            preload="auto"
+            loop
+            preload="none"
           />
         </div>
 
@@ -540,22 +587,15 @@ export default function Landing({ onOpenTool }) {
             <span>ToolVerse</span>
           </a>
           <nav className="nav-links" aria-label="Primary">
-            <a href="#tools">Products</a>
-            <a href="#features">Pricing</a>
-            <a href="#developers">Developers</a>
-            <a href="#how-it-works">Resources</a>
-            <a href="#contact">Contact Sales</a>
+            <a href="#tools">Tools</a>
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How it works</a>
+            <a href="#about">About</a>
+            <a href="#contact">Feedback</a>
           </nav>
           <div className="nav-actions">
-            <button
-              type="button"
-              className="btn btn-login"
-              onClick={() => setPaletteOpen(true)}
-            >
-              Login
-            </button>
             <a href="#tools" className="btn btn-nav-start">
-              <span>Get Started</span>
+              <span>Explore tools</span>
               <svg className="arw" viewBox="0 0 12 10" fill="none" aria-hidden="true">
                 <path
                   d="M0.8 5h10M7.1 1.4 10.9 5l-3.8 3.6"
@@ -586,38 +626,26 @@ export default function Landing({ onOpenTool }) {
           aria-label="Mobile"
         >
           <a href="#tools" onClick={() => setHeroMenuOpen(false)}>
-            Products
+            Tools
           </a>
           <a href="#features" onClick={() => setHeroMenuOpen(false)}>
-            Pricing
-          </a>
-          <a href="#developers" onClick={() => setHeroMenuOpen(false)}>
-            Developers
+            Features
           </a>
           <a href="#how-it-works" onClick={() => setHeroMenuOpen(false)}>
-            Resources
+            How it works
+          </a>
+          <a href="#about" onClick={() => setHeroMenuOpen(false)}>
+            About
           </a>
           <a href="#contact" onClick={() => setHeroMenuOpen(false)}>
-            Contact Sales
+            Feedback
           </a>
-          <div className="divider" />
-          <button
-            type="button"
-            className="btn btn-login"
-            style={{ width: "100%", marginBottom: "8px" }}
-            onClick={() => {
-              setHeroMenuOpen(false);
-              setPaletteOpen(true);
-            }}
-          >
-            Login (⌘K)
-          </button>
           <a
             href="#tools"
             className="m-start"
             onClick={() => setHeroMenuOpen(false)}
           >
-            <span>Get Started</span>
+            <span>Explore tools</span>
             <svg className="arw" viewBox="0 0 12 10" fill="none" aria-hidden="true">
               <path
                 d="M0.8 5h10M7.1 1.4 10.9 5l-3.8 3.6"
@@ -633,22 +661,20 @@ export default function Landing({ onOpenTool }) {
         <div className="hero-inner">
           <h1>
             <span className="ln">
-              <span className="ln-i">Cross-border</span>
+              <span className="ln-i">Tools for your</span>
             </span>
             <span className="ln">
-              <span className="ln-i">finance</span>
+              <span className="ln-i">everyday tasks</span>
             </span>
           </h1>
           <p className="sub">
-            Accept payments, manage and custody your assets with ease,
+            Convert, create, calculate, and format in seconds.
             <br />
-            enjoy seamless on/off-ramping between cryptocurrencies and fiat,
-            <br />
-            and explore integrated eCommerce solutions.
+            Free, handy browser tools—ready whenever you are.
           </p>
           <div className="ctas">
             <a href="#tools" className="btn btn-lg btn-primary">
-              <span>Get Started</span>
+              <span>Explore tools</span>
               <svg className="arw" viewBox="0 0 12 10" fill="none" aria-hidden="true">
                 <path
                   d="M0.8 5h10M7.1 1.4 10.9 5l-3.8 3.6"
@@ -659,8 +685,8 @@ export default function Landing({ onOpenTool }) {
                 />
               </svg>
             </a>
-            <a href="#contact" className="btn btn-lg btn-ghost">
-              <span>Contact Sales</span>
+            <a href="#how-it-works" className="btn btn-lg btn-ghost">
+              <span>How it works</span>
               <svg className="arw" viewBox="0 0 12 10" fill="none" aria-hidden="true">
                 <path
                   d="M0.8 5h10M7.1 1.4 10.9 5l-3.8 3.6"
@@ -678,12 +704,12 @@ export default function Landing({ onOpenTool }) {
       {/* ================= TOOL DIRECTORY & WORKSPACE ================= */}
       <section
         id="tools"
-        className="scroll-mt-20 border-t border-white/[0.08] bg-[#0A0D15]/80 py-16 sm:py-24"
+        className="scroll-mt-20 border-t border-white/[0.08] py-16 sm:py-24"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-8 lg:px-10">
           {/* Prominent Search Bar & Quick Jump */}
           <div role="search" className="relative z-10 mx-auto mb-12 max-w-2xl">
-            <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-[#101522]/90 p-2 shadow-2xl shadow-black/60 ring-1 ring-white/5 backdrop-blur-xl transition-all focus-within:border-emerald-500/60 focus-within:ring-2 focus-within:ring-emerald-500/20 sm:p-2.5">
+            <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-black/55 p-2 shadow-2xl shadow-black/60 ring-1 ring-white/5 backdrop-blur-xl transition-all focus-within:border-emerald-500/60 focus-within:ring-2 focus-within:ring-emerald-500/20 sm:p-2.5">
               <Search size={20} className="ml-3 shrink-0 text-slate-400" />
               <input
                 ref={searchRef}
@@ -693,7 +719,7 @@ export default function Landing({ onOpenTool }) {
                   setSearch(e.target.value);
                   setCurrentPage(1);
                 }}
-                placeholder="Search all 22 tools (e.g. compress, qr, json, jwt)..."
+                placeholder={`Search all ${tools.length} tools (e.g. compress, qr, json, jwt)...`}
                 aria-label="Search all tools"
                 className="min-w-0 flex-1 border-0 bg-transparent text-sm text-white placeholder-slate-500 outline-none focus:ring-0 sm:text-base"
               />
@@ -743,7 +769,7 @@ export default function Landing({ onOpenTool }) {
           </div>
 
           {/* ================= INTERACTIVE HERO PLAYGROUND ================= */}
-          <div className="mx-auto mb-16 max-w-3xl rounded-2xl border border-white/10 bg-[#0E131E]/90 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-6">
+          <div className="mx-auto mb-16 max-w-3xl rounded-2xl border border-white/10 bg-black/45 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
                 <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -761,7 +787,7 @@ export default function Landing({ onOpenTool }) {
                       : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  Live Text Stats
+                  Word Counter
                 </button>
                 <button
                   type="button"
@@ -772,7 +798,7 @@ export default function Landing({ onOpenTool }) {
                       : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  Instant Password
+                  Password Generator
                 </button>
                 <button
                   type="button"
@@ -783,7 +809,7 @@ export default function Landing({ onOpenTool }) {
                       : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  Live QR Preview
+                  QR Code
                 </button>
               </div>
             </div>
@@ -926,16 +952,16 @@ export default function Landing({ onOpenTool }) {
           {/* Metrics trust bar */}
           <div className="mx-auto mb-16 grid w-full max-w-4xl grid-cols-2 gap-4 border-y border-white/[0.08] py-8 text-center sm:grid-cols-4">
             <div className="flex flex-col items-center">
-              <span className="text-2xl font-black text-white sm:text-3xl">22+</span>
-              <span className="text-xs font-medium text-slate-400">Free Client Tools</span>
+              <span className="text-2xl font-black text-white sm:text-3xl">{tools.length}+</span>
+              <span className="text-xs font-medium text-slate-400">Free Browser Tools</span>
             </div>
             <div className="flex flex-col items-center">
-              <span className="text-2xl font-black text-emerald-400 sm:text-3xl">0 ms</span>
-              <span className="text-xs font-medium text-slate-400">Server Latency</span>
+              <span className="text-2xl font-black text-emerald-400 sm:text-3xl">Free</span>
+              <span className="text-xs font-medium text-slate-400">No account needed</span>
             </div>
             <div className="flex flex-col items-center">
-              <span className="text-2xl font-black text-teal-400 sm:text-3xl">100%</span>
-              <span className="text-xs font-medium text-slate-400">In-Browser Memory</span>
+              <span className="text-2xl font-black text-emerald-400 sm:text-3xl">Fast</span>
+              <span className="text-xs font-medium text-slate-400">Simple to use</span>
             </div>
             <div className="flex flex-col items-center">
               <span className="text-2xl font-black text-white sm:text-3xl">Zero</span>
@@ -994,7 +1020,7 @@ export default function Landing({ onOpenTool }) {
 
           {/* Recently Used Tray */}
           {recentTools.length > 0 && (
-            <div className="mb-8 rounded-2xl border border-white/[0.08] bg-[#101522]/80 p-4 backdrop-blur-md">
+            <div className="mb-8 rounded-2xl border border-white/[0.08] bg-white/[0.025] p-4 backdrop-blur-md">
               <div className="mb-3 flex items-center justify-between">
                 <span className="flex items-center gap-2 text-xs font-semibold text-slate-300">
                   <Clock3 size={14} className="text-emerald-400" /> Recently Used
@@ -1146,7 +1172,7 @@ export default function Landing({ onOpenTool }) {
                   <div
                     key={tool.id}
                     onClick={() => openTool(tool.id)}
-                    className="group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111622]/80 p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:border-emerald-500/40 hover:bg-[#141B2B] hover:shadow-2xl hover:shadow-emerald-500/10"
+                    className="group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:border-emerald-500/40 hover:bg-emerald-500/[0.045] hover:shadow-2xl hover:shadow-emerald-500/10"
                   >
                     {/* Top Row: Category + Star */}
                     <div>
@@ -1235,7 +1261,7 @@ export default function Landing({ onOpenTool }) {
                   <div
                     key={tool.id}
                     onClick={() => openTool(tool.id)}
-                    className="group flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-white/[0.08] bg-[#111622]/70 px-5 py-3.5 shadow-sm transition-all hover:border-emerald-500/40 hover:bg-[#141B2B]"
+                    className="group flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-white/[0.08] bg-white/[0.025] px-5 py-3.5 shadow-sm transition-all hover:border-emerald-500/40 hover:bg-emerald-500/[0.045]"
                   >
                     <div className="flex min-w-0 flex-1 items-center gap-4">
                       <span
@@ -1285,7 +1311,7 @@ export default function Landing({ onOpenTool }) {
 
           {/* Empty search */}
           {filtered.length === 0 && (
-            <div className="rounded-2xl border border-white/10 bg-[#101522]/50 p-12 text-center">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-12 text-center">
               <Search size={32} className="mx-auto mb-3 text-slate-500" />
               <h3 className="text-base font-bold text-white">No matching tools found</h3>
               <p className="mt-1 text-sm text-slate-400">
@@ -1371,7 +1397,7 @@ export default function Landing({ onOpenTool }) {
           </div>
 
           <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <div className="group rounded-2xl border border-white/[0.08] bg-[#111622]/80 p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all hover:border-emerald-500/40 hover:bg-[#141B2B]">
+            <div className="group rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all hover:border-emerald-500/40 hover:bg-emerald-500/[0.045]">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
                 <ShieldCheck size={22} />
               </span>
@@ -1382,8 +1408,8 @@ export default function Landing({ onOpenTool }) {
               </p>
             </div>
 
-            <div className="group rounded-2xl border border-white/[0.08] bg-[#111622]/80 p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all hover:border-teal-500/40 hover:bg-[#141B2B]">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-teal-500/20 bg-teal-500/10 text-teal-300">
+            <div className="group rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all hover:border-emerald-500/40 hover:bg-emerald-500/[0.045]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-300">
                 <Zap size={22} />
               </span>
               <h3 className="mt-5 text-base font-bold text-white">Zero-Latency Execution</h3>
@@ -1393,8 +1419,8 @@ export default function Landing({ onOpenTool }) {
               </p>
             </div>
 
-            <div className="group rounded-2xl border border-white/[0.08] bg-[#111622]/80 p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all hover:border-cyan-500/40 hover:bg-[#141B2B]">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-500/20 bg-cyan-500/10 text-cyan-300">
+            <div className="group rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all hover:border-emerald-500/40 hover:bg-emerald-500/[0.045]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-300">
                 <Command size={22} />
               </span>
               <h3 className="mt-5 text-base font-bold text-white">Command-K Launcher</h3>
@@ -1404,8 +1430,8 @@ export default function Landing({ onOpenTool }) {
               </p>
             </div>
 
-            <div className="group rounded-2xl border border-white/[0.08] bg-[#111622]/80 p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all hover:border-violet-500/40 hover:bg-[#141B2B]">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-violet-500/20 bg-violet-500/10 text-violet-300">
+            <div className="group rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all hover:border-emerald-500/40 hover:bg-emerald-500/[0.045]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-300">
                 <LockKeyhole size={22} />
               </span>
               <h3 className="mt-5 text-base font-bold text-white">Zero Signup Walls</h3>
@@ -1421,7 +1447,7 @@ export default function Landing({ onOpenTool }) {
       {/* ================= HOW IT WORKS ================= */}
       <section
         id="how-it-works"
-        className="scroll-mt-20 border-t border-white/[0.08] bg-[#0A0D15]/60 px-4 py-16 sm:px-8 sm:py-24"
+        className="scroll-mt-20 border-t border-white/[0.08] px-4 py-16 sm:px-8 sm:py-24"
       >
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
@@ -1442,17 +1468,16 @@ export default function Landing({ onOpenTool }) {
           </div>
 
           <div className="mt-12 grid gap-6 md:grid-cols-3">
-            <div className="rounded-2xl border border-white/[0.08] bg-[#111622]/80 p-6 backdrop-blur-xl">
+            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-xl">
               <span className="font-mono text-3xl font-black text-emerald-400/30">01</span>
               <h3 className="mt-4 text-base font-bold text-white">Select Your Tool</h3>
               <p className="mt-2 text-xs leading-relaxed text-slate-400">
-                Browse our categorized directory or press ⌘K to instantly launch any of the 22
-                utilities.
+                Browse by category or press ⌘K to quickly find the tool you need.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-white/[0.08] bg-[#111622]/80 p-6 backdrop-blur-xl">
-              <span className="font-mono text-3xl font-black text-teal-400/30">02</span>
+            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-xl">
+              <span className="font-mono text-3xl font-black text-emerald-400/30">02</span>
               <h3 className="mt-4 text-base font-bold text-white">Drop, Paste & Adjust</h3>
               <p className="mt-2 text-xs leading-relaxed text-slate-400">
                 Paste code, drag and drop images, or adjust precision sliders with instantaneous
@@ -1460,8 +1485,8 @@ export default function Landing({ onOpenTool }) {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-white/[0.08] bg-[#111622]/80 p-6 backdrop-blur-xl">
-              <span className="font-mono text-3xl font-black text-cyan-400/30">03</span>
+            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-xl">
+              <span className="font-mono text-3xl font-black text-emerald-400/30">03</span>
               <h3 className="mt-4 text-base font-bold text-white">Copy or Export</h3>
               <p className="mt-2 text-xs leading-relaxed text-slate-400">
                 Download your compressed images, QR codes, or PDF documents, or copy clean output
@@ -1474,7 +1499,7 @@ export default function Landing({ onOpenTool }) {
 
       {/* ================= ABOUT / MISSION ================= */}
       <section id="about" className="scroll-mt-20 px-4 py-16 sm:px-8 sm:py-24">
-        <div className="mx-auto flex max-w-7xl flex-col gap-8 rounded-3xl border border-white/10 bg-gradient-to-br from-[#131926] via-[#0E131E] to-[#0A0D15] p-8 sm:p-12 md:flex-row md:items-center">
+        <div className="mx-auto flex max-w-7xl flex-col gap-8 rounded-3xl border border-white/10 bg-white/[0.025] p-8 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-12 md:flex-row md:items-center">
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
             <Cpu size={32} />
           </div>
@@ -1507,7 +1532,7 @@ export default function Landing({ onOpenTool }) {
       </section>
 
       {/* ================= FREQUENTLY ASKED QUESTIONS ================= */}
-      <section className="border-t border-white/[0.08] bg-[#0A0D15]/50 px-4 py-16 sm:px-8 sm:py-24">
+      <section className="border-t border-white/[0.08] px-4 py-16 sm:px-8 sm:py-24">
         <div className="mx-auto max-w-4xl">
           <div className="text-center">
             <p className="text-xs font-bold uppercase tracking-widest text-emerald-400">FAQ</p>
@@ -1515,7 +1540,7 @@ export default function Landing({ onOpenTool }) {
               Frequently Asked Questions
             </h2>
             <p className="mt-2 text-sm text-slate-400">
-              Everything you need to know about ToolVerse’s architecture and usage.
+              Quick answers about using ToolVerse and its browser-based utilities.
             </p>
           </div>
 
@@ -1525,7 +1550,7 @@ export default function Landing({ onOpenTool }) {
               return (
                 <div
                   key={q}
-                  className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111622]/80 backdrop-blur-md"
+                  className="overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] backdrop-blur-md"
                 >
                   <button
                     type="button"
@@ -1554,7 +1579,7 @@ export default function Landing({ onOpenTool }) {
 
       {/* ================= FEEDBACK & CONTACT ================= */}
       <section id="contact" className="scroll-mt-20 px-4 pb-24 pt-10 sm:px-8">
-        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-[#102018] via-[#0E141F] to-[#0A0D15] p-8 shadow-2xl sm:p-12">
+        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-3xl border border-emerald-500/20 bg-white/[0.025] p-8 shadow-2xl shadow-emerald-500/[0.06] backdrop-blur-xl sm:p-12">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-emerald-500/10 blur-[80px]"

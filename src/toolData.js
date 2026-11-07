@@ -74,10 +74,10 @@ export const categoryMeta = {
     badge: "Document",
   },
   Design: {
-    color: "#8b5cf6",
-    bg: "rgba(139, 92, 246, 0.1)",
-    border: "rgba(139, 92, 246, 0.25)",
-    text: "#a78bfa",
+    color: "#22c55e",
+    bg: "rgba(34, 197, 94, 0.1)",
+    border: "rgba(34, 197, 94, 0.25)",
+    text: "#4ade80",
     badge: "Design",
   },
   Productivity: {

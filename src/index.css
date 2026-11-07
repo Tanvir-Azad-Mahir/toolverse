@@ -31,8 +31,8 @@
   --ink:        #ffffff;
   --ink-muted:  #ededed;
   --panel:      #181818;
-  --white-btn:  #fdfdfd;
-  --btn-ink:    #050505;
+  --white-btn:  #10b981;
+  --btn-ink:    #022c22;
   --glass-fill: rgba(0, 0, 0, 0.78);
   --glass-line: rgba(255, 255, 255, 0.09);
 
@@ -78,13 +78,13 @@ button, input, textarea, select {
 
 /* Focus outline */
 a:focus-visible, button:focus-visible {
-  outline: 2px solid #a78bfa;
+  outline: 2px solid #34d399;
   outline-offset: 3px;
   border-radius: 99px;
 }
 
 ::selection {
-  background: rgba(167, 139, 250, 0.3);
+  background: rgba(16, 185, 129, 0.3);
   color: #ffffff;
 }
 
@@ -135,6 +135,15 @@ a:focus-visible, button:focus-visible {
   pointer-events: none;
   opacity: 0;
   transition: opacity .9s linear;
+}
+
+.bg-poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 51% 8%;
 }
 
 .bg-video.is-active {
@@ -220,44 +229,30 @@ a:focus-visible, button:focus-visible {
   cursor: pointer;
 }
 
-.btn-login {
-  height: calc(28 * var(--u));
-  padding: 0 calc(12.9 * var(--u));
-  border-radius: calc(14 * var(--u));
-  background: var(--panel);
-  color: #e8e8e8;
-  font-size: calc(11.5 * var(--u));
-  font-weight: 500;
-  letter-spacing: calc(-0.15 * var(--u));
-  transition: background .18s ease, color .18s ease;
-}
-
-.btn-login:hover {
-  background: #232323;
-  color: #fff;
-}
-
 .btn-nav-start {
-  height: calc(28 * var(--u));
-  padding-left: calc(13.5 * var(--u));
-  padding-right: calc(14.5 * var(--u));
-  border-radius: calc(14 * var(--u));
-  background: var(--white-btn);
+  min-height: max(42px, calc(42 * var(--u)));
+  padding: 0 19px;
+  border: 1px solid rgba(167, 243, 208, 0.72);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #34d399, #10b981);
   color: var(--btn-ink);
-  font-size: calc(11.1 * var(--u));
-  font-weight: 500;
+  font-size: max(13px, calc(13 * var(--u)));
+  font-weight: 700;
   letter-spacing: 0;
-  gap: calc(7 * var(--u));
-  transition: background .18s ease;
+  gap: 9px;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12), 0 8px 26px rgba(16, 185, 129, 0.3);
+  transition: background .18s ease, box-shadow .18s ease, transform .18s ease;
 }
 
 .btn-nav-start:hover {
-  background: #fff;
+  background: linear-gradient(135deg, #6ee7b7, #34d399);
+  box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.16), 0 10px 32px rgba(16, 185, 129, 0.38);
+  transform: translateY(-1px);
 }
 
 .btn-nav-start .arw {
-  width: calc(11.5 * var(--u));
-  height: calc(9.6 * var(--u));
+  width: 14px;
+  height: 12px;
 }
 
 .burger {
@@ -373,7 +368,7 @@ h1 {
 }
 
 .btn-primary:hover {
-  background: #fff;
+  background: #34d399;
 }
 
 .btn-ghost {
@@ -538,7 +533,7 @@ h1 {
   }
 
   .menu .m-start:hover {
-    background: #fff;
+      background: #34d399;
     color: var(--btn-ink);
   }
 
@@ -679,6 +674,17 @@ h1 {
   }
 }
 
+/* Keep the content below the hero in the same quiet, atmospheric palette. */
+.landing-page {
+  background:
+    radial-gradient(ellipse at 50% 0, rgba(16, 185, 129, 0.09), transparent 48rem),
+    #030504;
+}
+
+.landing-page > section:not(.hero) {
+  background-color: transparent;
+}
+
 /* ============================================================
    ENTRANCE SEQUENCE
    ============================================================ */
@@ -804,10 +810,6 @@ html.anim.go .nav-links a:nth-child(5) { animation-delay: .720s; }
 
 html.anim.go .sub {
   animation: subIn .85s var(--e-reveal) .58s both;
-}
-
-html.anim.go .btn-login {
-  animation: pillIn .55s var(--e-soft) .68s both;
 }
 
 html.anim.go .burger {
