@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import Landing from "./Landing";
+import FeedbackPage from "./FeedbackPage";
 import SiteLayout from "./SiteLayout";
 import ToolPage from "./ToolPage";
 import { descriptions } from "./toolData";
@@ -71,6 +72,7 @@ export default function App() {
   }, []);
 
   const { hash, active } = route;
+  const isFeedback = hash === "feedback";
 
   // Record visits regardless of navigation source: directory, related cards,
   // command palette, bookmarked URLs, or browser history.
@@ -81,19 +83,23 @@ export default function App() {
   useEffect(() => {
     document.title = active
       ? `${descriptions[active].title} — ToolVerse`
-      : "ToolVerse — Free Online Tools";
+      : isFeedback
+        ? "Send Feedback — ToolVerse"
+        : "ToolVerse — Free Online Tools";
 
     const description = active
       ? descriptions[active].description
-      : "Free image, text, developer, and everyday online tools. No sign-up required.";
+      : isFeedback
+        ? "Send feedback, report a problem, or suggest a new tool for ToolVerse."
+        : "Free image, text, developer, and everyday online tools. No sign-up required.";
 
     document
       .querySelector('meta[name="description"]')
       ?.setAttribute("content", description);
-  }, [active]);
+  }, [active, isFeedback]);
 
   useEffect(() => {
-    if (active) {
+    if (active || isFeedback) {
       window.scrollTo({
         top: 0,
         behavior: "instant",
@@ -114,7 +120,7 @@ export default function App() {
         behavior: "instant",
       });
     }
-  }, [hash, active]);
+  }, [hash, active, isFeedback]);
 
   function navigate(hash = "") {
     if (getHash() === hash) {
@@ -141,9 +147,11 @@ export default function App() {
   }
 
   return (
-    <SiteLayout active={active}>
+    <SiteLayout active={active || (isFeedback ? "feedback" : "")}>
       {active ? (
         <ToolPage id={active} onBack={() => navigate("tools")} />
+      ) : isFeedback ? (
+        <FeedbackPage onBack={() => navigate("")} />
       ) : (
         <Landing onOpenTool={navigate} />
       )}

@@ -37,7 +37,7 @@ const navLinks = [
   { label: "Architecture", anchor: "features" },
   { label: "How It Works", anchor: "how-it-works" },
   { label: "About", anchor: "about" },
-  { label: "Feedback", anchor: "contact" },
+  { label: "Feedback", anchor: "feedback" },
 ];
 
 const popularShortcuts = [
@@ -324,7 +324,7 @@ export default function SiteLayout({ children, active = "" }) {
                 </p>
                 <div className="mt-4 flex flex-col gap-2.5">
                   <a
-                    href="mailto:galvoid.tech@gmail.com?subject=ToolVerse%20Feedback"
+                    href="#feedback"
                     className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-xs font-medium text-slate-200 transition-colors hover:border-emerald-500/30 hover:bg-emerald-500/[0.06] hover:text-white"
                   >
                     <Mail size={14} className="text-emerald-400" />

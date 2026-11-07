@@ -54,7 +54,7 @@ const TOOLS_PER_PAGE = 9;
 const HERO_VIDEO_SRC =
   "https://res.cloudinary.com/p2x0mtjj/video/upload/q_auto:eco,w_1280,c_limit,f_auto/v1794063486/n.mp4";
 const HERO_POSTER_SRC =
-  "https://res.cloudinary.com/p2x0mtjj/image/upload/f_auto,q_auto,w_1920,c_limit/v1794063552/Gemini_Generated_Image_lhlq4elhlq4elhlq.jpg";
+  "https://res.cloudinary.com/p2x0mtjj/image/upload/v1794065968/Image_cvftr6cvftr6cvft.jpg";
 const knownIds = new Set(tools.map((tool) => String(tool.id)));
 const toolById = new Map(tools.map((tool) => [String(tool.id), tool]));
 
@@ -91,7 +91,7 @@ const faqs = [
   },
   {
     q: "How can I suggest a new tool or report an issue?",
-    a: "You can submit feedback directly via email to galvoid.tech@gmail.com or open an issue on our public GitHub repository.",
+    a: "Use the Feedback link to prepare a message in your email app, or open an issue on our public GitHub repository.",
   },
 ];
 
@@ -591,7 +591,7 @@ export default function Landing({ onOpenTool }) {
             <a href="#features">Features</a>
             <a href="#how-it-works">How it works</a>
             <a href="#about">About</a>
-            <a href="#contact">Feedback</a>
+            <a href="#feedback">Feedback</a>
           </nav>
           <div className="nav-actions">
             <a href="#tools" className="btn btn-nav-start">
@@ -637,7 +637,7 @@ export default function Landing({ onOpenTool }) {
           <a href="#about" onClick={() => setHeroMenuOpen(false)}>
             About
           </a>
-          <a href="#contact" onClick={() => setHeroMenuOpen(false)}>
+          <a href="#feedback" onClick={() => setHeroMenuOpen(false)}>
             Feedback
           </a>
           <a
@@ -1601,7 +1601,7 @@ export default function Landing({ onOpenTool }) {
 
             <div className="flex shrink-0 flex-col gap-3 sm:flex-row md:flex-col">
               <a
-                href="mailto:galvoid.tech@gmail.com?subject=ToolVerse%20Suggestion%20or%20Feedback"
+                href="#feedback"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3.5 text-xs font-bold text-[#022c22] shadow-lg shadow-emerald-500/25 transition-all hover:bg-emerald-400 hover:shadow-emerald-500/35"
               >
                 <Mail size={16} /> Send Direct Feedback
