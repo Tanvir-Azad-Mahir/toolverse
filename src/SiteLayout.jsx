@@ -9,7 +9,6 @@ import {
   Menu,
   Search,
   ShieldCheck,
-  Wrench,
   X,
 } from "lucide-react";
 
@@ -86,8 +85,8 @@ export default function SiteLayout({ children }) {
               className="group inline-flex min-w-0 shrink-0 items-center gap-3"
               aria-label="ToolVerse homepage"
             >
-              <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 via-teal-500 to-emerald-600 shadow-md shadow-emerald-500/20 ring-1 ring-white/20 transition-transform duration-200 group-hover:scale-105">
-                <Wrench className="h-5 w-5 text-[#041d14]" strokeWidth={2.5} />
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-[#121622] p-1.5 shadow-md shadow-emerald-500/10 ring-1 ring-white/10 transition-transform duration-200 group-hover:scale-105">
+                <img src="/log2.png" alt="ToolVerse logo" className="h-full w-full object-contain" />
                 <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-400 ring-2 ring-[#090A0F]">
                   <span className="h-1.5 w-1.5 animate-ping rounded-full bg-emerald-100" />
                 </span>
@@ -237,8 +236,8 @@ export default function SiteLayout({ children }) {
                   href="#"
                   className="inline-flex items-center gap-2.5 text-lg font-black tracking-tight text-white"
                 >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 shadow-md">
-                    <Wrench className="h-4 w-4 text-[#041d14]" strokeWidth={2.5} />
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-[#121622] p-1.5 shadow-md">
+                    <img src="/log2.png" alt="ToolVerse logo" className="h-full w-full object-contain" />
                   </div>
                   <span>ToolVerse</span>
                 </a>
