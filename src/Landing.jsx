@@ -52,9 +52,9 @@ const VIEW_MODE_KEY = "toolverse:view_mode:v1";
 const MAX_RECENTS = 6;
 const TOOLS_PER_PAGE = 9;
 const HERO_VIDEO_SRC =
-  "https://res.cloudinary.com/p2x0mtjj/video/upload/v1794079110/video_7981ac3c.mp4";
+  "https://res.cloudinary.com/p2x0mtjj/video/upload/v1794079110/gemini_generated_video_7981ac3c.mp4";
 const HERO_POSTER_SRC =
-  "https://res.cloudinary.com/p2x0mtjj/image/upload/v1794065968/Image_cvftr6cvftr6cvft.jpg";
+  "https://res.cloudinary.com/p2x0mtjj/image/upload/v1794065968/Gemini_Generated_Image_cvftr6cvftr6cvft.jpg";
 const knownIds = new Set(tools.map((tool) => String(tool.id)));
 const toolById = new Map(tools.map((tool) => [String(tool.id), tool]));
 
