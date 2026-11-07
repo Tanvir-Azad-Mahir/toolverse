@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 const editorClass =
-  "w-full min-h-[260px] resize-y rounded-xl border border-white/10 bg-[#101210] px-5 py-4 text-sm leading-7 text-slate-200 outline-none transition placeholder:text-slate-600 focus:border-[#86EFAC]/50 focus:ring-2 focus:ring-[#86EFAC]/10";
+  "w-full min-h-[260px] resize-y rounded-xl border border-white/10 bg-[#07090E] px-5 py-4 text-sm leading-7 text-slate-200 outline-none transition placeholder:text-slate-600 focus:border-[#10b981]/50 focus:ring-2 focus:ring-[#10b981]/10";
 
 const readingSpeed = 200;
 const speakingSpeed = 130;
@@ -189,7 +189,7 @@ export default function WordCounter() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="flex items-center gap-2.5 text-lg font-bold text-white sm:text-xl">
-            <Type size={22} className="text-[#86EFAC]" />
+            <Type size={22} className="text-[#10b981]" />
             Word Analysis Workspace
           </h2>
 
@@ -199,7 +199,7 @@ export default function WordCounter() {
           </p>
         </div>
 
-        <span className="inline-flex items-center gap-2 rounded-full border border-[#86EFAC]/20 bg-[#86EFAC]/10 px-3 py-1.5 text-xs font-medium text-[#BBF7D0]">
+        <span className="inline-flex items-center gap-2 rounded-full border border-[#10b981]/20 bg-[#10b981]/10 px-3 py-1.5 text-xs font-medium text-[#34d399]">
           Live analysis
         </span>
       </div>
@@ -211,7 +211,7 @@ export default function WordCounter() {
             htmlFor="word-counter-input"
             className="flex items-center gap-2 text-sm font-semibold text-slate-200"
           >
-            <FileText size={17} className="text-[#86EFAC]" />
+            <FileText size={17} className="text-[#10b981]" />
             Your text
           </label>
 
@@ -293,8 +293,8 @@ export default function WordCounter() {
                 key={stat.label}
                 className={`rounded-2xl border p-4 transition sm:p-5 ${
                   stat.highlight
-                    ? "border-[#86EFAC]/25 bg-gradient-to-br from-[#86EFAC]/10 to-[#356B50]/[0.04]"
-                    : "border-white/10 bg-[#1B2420]"
+                    ? "border-[#10b981]/25 bg-gradient-to-br from-[#10b981]/10 to-[#356B50]/[0.04]"
+                    : "border-white/10 bg-[#0D111A]"
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
@@ -306,7 +306,7 @@ export default function WordCounter() {
                     size={17}
                     className={
                       stat.highlight
-                        ? "text-[#86EFAC]"
+                        ? "text-[#10b981]"
                         : "text-slate-500"
                     }
                   />
@@ -315,7 +315,7 @@ export default function WordCounter() {
                 <p
                   className={`mt-4 text-2xl font-bold tracking-tight sm:text-3xl ${
                     stat.highlight
-                      ? "text-[#86EFAC]"
+                      ? "text-[#10b981]"
                       : "text-white"
                   }`}
                 >
@@ -330,7 +330,7 @@ export default function WordCounter() {
       {/* Reading and speaking time */}
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#18221C] p-5">
-          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[#86EFAC]/10 text-[#86EFAC]">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[#10b981]/10 text-[#10b981]">
             <Clock3 size={22} />
           </div>
 
@@ -348,7 +348,7 @@ export default function WordCounter() {
         </div>
 
         <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#18221C] p-5">
-          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[#86EFAC]/10 text-[#86EFAC]">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[#10b981]/10 text-[#10b981]">
             <Mic size={22} />
           </div>
 
@@ -368,7 +368,7 @@ export default function WordCounter() {
 
       {/* Top keywords */}
       {keywords.length > 0 && (
-        <div className="space-y-4 rounded-2xl border border-white/10 bg-[#1B2420] p-5 sm:p-6">
+        <div className="space-y-4 rounded-2xl border border-white/10 bg-[#0D111A] p-5 sm:p-6">
           <div>
             <h3 className="text-sm font-bold text-white">
               Most frequent keywords
@@ -388,7 +388,7 @@ export default function WordCounter() {
                   {word}
                 </span>
 
-                <span className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-semibold text-[#86EFAC]">
+                <span className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-semibold text-[#10b981]">
                   {count} {count === 1 ? "time" : "times"}
                 </span>
               </div>
@@ -411,7 +411,7 @@ export default function WordCounter() {
       <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.025] p-4">
         <ShieldCheck
           size={18}
-          className="mt-0.5 shrink-0 text-[#86EFAC]"
+          className="mt-0.5 shrink-0 text-[#10b981]"
         />
 
         <p className="text-xs leading-6 text-slate-400">

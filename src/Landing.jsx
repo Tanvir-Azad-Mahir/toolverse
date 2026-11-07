@@ -1,35 +1,39 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import QRCode from "qrcode";
 import {
-  Check,
+  ArrowDown,
   ArrowRight,
-  Layers3,
-  Search,
-  LockKeyhole,
-  Zap,
-  ShieldCheck,
-  MousePointerClick,
-  Download,
-  Globe2,
-  Mail,
+  ArrowUp,
+  ArrowUpRight,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Clock3,
+  Command,
+  Copy,
+  CornerDownLeft,
+  Cpu,
   GitBranch,
   HeartHandshake,
-  ArrowUpRight,
-  X,
-  Command,
+  LayoutGrid,
+  List,
+  LockKeyhole,
+  Mail,
+  RefreshCw,
+  Search,
+  ShieldCheck,
+  Sparkles,
   Star,
-  Clock3,
-  CornerDownLeft,
-  ArrowUp,
-  ArrowDown,
+  X,
+  Zap,
 } from "lucide-react";
 
-import { tools, categories } from "./toolData";
+import { tools, categories, categoryMeta } from "./toolData";
 import { triggerAdWithFrequency } from "./utils/monetag";
 
-// Tool metadata is static: prepare searchable text only once.
 const searchableTools = tools.map((tool) => ({
   tool,
-  keywords: `${tool.name} ${tool.description} ${tool.category}`.toLocaleLowerCase(),
+  keywords: `${tool.name} ${tool.description} ${tool.category} ${tool.tag || ""}`.toLowerCase(),
 }));
 
 const popularToolNames = [
@@ -37,18 +41,17 @@ const popularToolNames = [
   "QR Code Generator",
   "JSON Formatter",
   "Word Counter",
+  "Password Generator",
+  "UUID Generator",
 ];
 
 const popularTools = popularToolNames
   .map((name) => tools.find((tool) => tool.name === name))
   .filter(Boolean);
 
-const navigateToTool = (id) => {
-  window.location.hash = id;
-};
-
 const FAVORITES_KEY = "toolverse:favorites:v1";
 const RECENTS_KEY = "toolverse:recents:v1";
+const VIEW_MODE_KEY = "toolverse:view_mode:v1";
 const MAX_RECENTS = 6;
 const TOOLS_PER_PAGE = 9;
 const knownIds = new Set(tools.map((tool) => String(tool.id)));
@@ -68,54 +71,153 @@ function storeIds(key, ids) {
   try {
     window.localStorage.setItem(key, JSON.stringify(ids));
   } catch {
-    // Browsers with restricted storage can still use this feature until refresh.
+    // Fail-safe
   }
 }
 
-export default function Landing({ onOpenTool = navigateToTool }) {
+const faqs = [
+  {
+    q: "Are my files, tokens, or images uploaded to any server?",
+    a: "Never. All 22 tools in ToolVerse execute 100% client-side inside your browser sandbox using Canvas, WebCrypto, and WebAssembly. Your data never touches a remote server.",
+  },
+  {
+    q: "Is ToolVerse completely free to use?",
+    a: "Yes, completely free forever with unlimited usage. There are no paid tiers, no account signups, and no artificial daily limits.",
+  },
+  {
+    q: "Can I use ToolVerse offline?",
+    a: "Once the website is loaded in your browser, all calculation, formatting, conversion, and encoding utilities continue working without an active internet connection.",
+  },
+  {
+    q: "How can I suggest a new tool or report an issue?",
+    a: "You can submit feedback directly via email to galvoid.tech@gmail.com or open an issue on our public GitHub repository.",
+  },
+];
+
+export default function Landing({ onOpenTool }) {
   const [favorites, setFavorites] = useState(() => readStoredIds(FAVORITES_KEY));
   const [recents, setRecents] = useState(() => readStoredIds(RECENTS_KEY).slice(0, MAX_RECENTS));
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All tools");
   const [currentPage, setCurrentPage] = useState(1);
-  const searchRef = useRef(null);
-  const paletteRef = useRef(null);
-  const paletteDialogRef = useRef(null);
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      return window.localStorage.getItem(VIEW_MODE_KEY) || "grid";
+    } catch {
+      return "grid";
+    }
+  });
+
+  // Hero Quick Playground state
+  const [heroTab, setHeroTab] = useState("text"); // text | password | qr
+  const [heroText, setHeroText] = useState("ToolVerse: 22+ client-side tools for modern developers.");
+  const [heroCopied, setHeroCopied] = useState(false);
+  const [heroPassword, setHeroPassword] = useState("tV7$mK9#xP2@qL5!");
+  const [heroPassLength, setHeroPassLength] = useState(16);
+  const [heroQrInput, setHeroQrInput] = useState("https://tooluniverse.pages.dev");
+  const [heroQrUrl, setHeroQrUrl] = useState("");
+
+  // FAQ accordion state
+  const [openFaq, setOpenFaq] = useState(null);
+
+  // Command palette state
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [paletteQuery, setPaletteQuery] = useState("");
   const [paletteIndex, setPaletteIndex] = useState(0);
-  const query = search.trim().toLocaleLowerCase();
+
+  const searchRef = useRef(null);
+  const paletteRef = useRef(null);
+  const paletteDialogRef = useRef(null);
+
+  const query = search.trim().toLowerCase();
   const favoriteSet = useMemo(() => new Set(favorites), [favorites]);
-  const recentTools = useMemo(() => recents.map((id) => toolById.get(id)).filter(Boolean), [recents]);
+  const recentTools = useMemo(
+    () => recents.map((id) => toolById.get(id)).filter(Boolean),
+    [recents]
+  );
 
   useEffect(() => storeIds(FAVORITES_KEY, favorites), [favorites]);
   useEffect(() => storeIds(RECENTS_KEY, recents), [recents]);
 
-  function toggleFavorite(id) {
+  function changeViewMode(mode) {
+    setViewMode(mode);
+    try {
+      window.localStorage.setItem(VIEW_MODE_KEY, mode);
+    } catch {
+      // Ignore storage errors
+    }
+  }
+
+  function toggleFavorite(id, e) {
+    if (e) e.stopPropagation();
     const key = String(id);
-    setFavorites((previous) => previous.includes(key)
-      ? previous.filter((item) => item !== key)
-      : [...previous, key]);
+    setFavorites((previous) =>
+      previous.includes(key) ? previous.filter((item) => item !== key) : [...previous, key]
+    );
   }
 
   function openTool(id) {
     const key = String(id);
-    
-    // Rate-limited ad trigger before opening any tool
-    triggerAdWithFrequency(() => {
-      setRecents((previous) => [key, ...previous.filter((item) => item !== key)].slice(0, MAX_RECENTS));
-      onOpenTool(id);
-    }, { actionsPerAd: 3, cooldownSeconds: 30 });
+    triggerAdWithFrequency(
+      () => {
+        setRecents((previous) =>
+          [key, ...previous.filter((item) => item !== key)].slice(0, MAX_RECENTS)
+        );
+        onOpenTool(id);
+      },
+      { actionsPerAd: 3, cooldownSeconds: 30 }
+    );
   }
 
-  // Keep the existing "/" shortcut for the inline search.
-  // Ctrl/Cmd+K now opens the command palette, even while typing.
+  // Generate hero QR code preview
+  useEffect(() => {
+    let active = true;
+    if (!heroQrInput.trim()) {
+      Promise.resolve().then(() => {
+        if (active) setHeroQrUrl("");
+      });
+      return () => {
+        active = false;
+      };
+    }
+    QRCode.toDataURL(heroQrInput.trim(), {
+      width: 180,
+      margin: 2,
+      color: { dark: "#090A0F", light: "#ffffff" },
+    })
+      .then((url) => {
+        if (active) setHeroQrUrl(url);
+      })
+      .catch(() => {
+        if (active) setHeroQrUrl("");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [heroQrInput]);
+
+  function generateHeroPassword() {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*-_=+";
+    const buf = new Uint32Array(heroPassLength);
+    crypto.getRandomValues(buf);
+    let pass = "";
+    for (let i = 0; i < heroPassLength; i++) {
+      pass += chars[buf[i] % chars.length];
+    }
+    setHeroPassword(pass);
+    setHeroCopied(false);
+  }
+
+  // Keyboard shortcut listener (Cmd+K, /, ESC, and custom event)
   useEffect(() => {
     function handleKeyDown(event) {
       const target = event.target;
-      const typing = target instanceof HTMLElement &&
+      const typing =
+        target instanceof HTMLElement &&
         (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
+
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         setPaletteOpen((open) => !open);
@@ -130,13 +232,35 @@ export default function Landing({ onOpenTool = navigateToTool }) {
         }
       }
     }
+
+    function handleCustomOpen() {
+      setPaletteOpen(true);
+    }
+
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("toolverse:open-palette", handleCustomOpen);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("toolverse:open-palette", handleCustomOpen);
+    };
+  }, [paletteOpen]);
+
+  // Command palette focus lock
+  useEffect(() => {
+    if (!paletteOpen) return;
+    const previous = document.activeElement;
+    paletteRef.current?.focus();
+    return () => previous?.focus?.();
   }, [paletteOpen]);
 
   const paletteResults = useMemo(() => {
-    const q = paletteQuery.trim().toLocaleLowerCase();
-    if (q) return searchableTools.filter(({ keywords }) => keywords.includes(q)).map(({ tool }) => tool);
+    const q = paletteQuery.trim().toLowerCase();
+    if (q) {
+      return searchableTools
+        .filter(({ keywords }) => keywords.includes(q))
+        .map(({ tool }) => tool);
+    }
     const priority = [...favorites, ...recents];
     const seen = new Set();
     return [...priority.map((id) => toolById.get(id)), ...tools].filter((tool) => {
@@ -146,66 +270,33 @@ export default function Landing({ onOpenTool = navigateToTool }) {
     });
   }, [paletteQuery, favorites, recents]);
 
-  useEffect(() => { setPaletteIndex(0); }, [paletteQuery, paletteOpen]);
-
-  useEffect(() => {
-    if (!paletteOpen) return;
-    const previouslyFocused = document.activeElement;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    paletteRef.current?.focus();
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      previouslyFocused?.focus?.();
-    };
-  }, [paletteOpen]);
-
-  function openFromPalette(id) {
-    setPaletteOpen(false);
-    openTool(id);
-  }
-
   function handlePaletteKeyDown(event) {
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      setPaletteIndex((index) => paletteResults.length ? Math.min(index + 1, paletteResults.length - 1) : 0);
+      setPaletteIndex((idx) => (paletteResults.length ? Math.min(idx + 1, paletteResults.length - 1) : 0));
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
-      setPaletteIndex((index) => Math.max(index - 1, 0));
+      setPaletteIndex((idx) => Math.max(idx - 1, 0));
     } else if (event.key === "Enter" && paletteResults[paletteIndex]) {
       event.preventDefault();
-      openFromPalette(paletteResults[paletteIndex].id);
-    } else if (event.key === "Tab") {
-      // Keep keyboard focus within the modal while it is open.
-      const tabbable = paletteDialogRef.current?.querySelectorAll('input,button:not([disabled])');
-      if (!tabbable?.length) return;
-      const first = tabbable[0];
-      const last = tabbable[tabbable.length - 1];
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      setPaletteOpen(false);
+      openTool(paletteResults[paletteIndex].id);
     }
   }
 
-  const showResults = () => {
-    const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    document.getElementById("tools")?.scrollIntoView({
-      behavior: prefersReducedMotion ? "auto" : "smooth",
-      block: "start",
-    });
-  };
-
   const filtered = useMemo(
-    () => searchableTools
-      .filter(({ tool, keywords }) =>
-        (category === "All tools" || tool.category === category) &&
-        (!query || keywords.includes(query)) &&
-        (!favoritesOnly || favoriteSet.has(String(tool.id)))
-      )
-      .map(({ tool }) => tool),
+    () =>
+      searchableTools
+        .filter(
+          ({ tool, keywords }) =>
+            (category === "All tools" || tool.category === category) &&
+            (!query || keywords.includes(query)) &&
+            (!favoritesOnly || favoriteSet.has(String(tool.id)))
+        )
+        .map(({ tool }) => tool),
     [category, query, favoritesOnly, favoriteSet]
   );
 
-  // Pagination uses the already filtered list, so all directory filters work.
   const totalPages = Math.max(1, Math.ceil(filtered.length / TOOLS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
   const paginatedTools = useMemo(
@@ -213,152 +304,441 @@ export default function Landing({ onOpenTool = navigateToTool }) {
     [filtered, safePage]
   );
 
-  // New searches and filter choices always begin on page one.
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, category, favoritesOnly]);
-
   function goToPage(page) {
     const nextPage = Math.max(1, Math.min(totalPages, page));
     setCurrentPage(nextPage);
-    const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     document.getElementById("tool-results")?.scrollIntoView({
-      behavior: prefersReducedMotion ? "auto" : "smooth",
+      behavior: "smooth",
       block: "start",
     });
   }
 
+  const heroWords = heroText.trim() ? heroText.trim().split(/\s+/).length : 0;
+  const heroChars = heroText.length;
+
   return (
-    <main className="relative flex-1 overflow-hidden">
-      {/* Fast tool navigation: Ctrl/Cmd+K. */}
+    <main className="relative flex-1">
+      {/* ================= COMMAND PALETTE (⌘K) ================= */}
       {paletteOpen && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-[max(12px,env(safe-area-inset-top))] sm:px-4 sm:pt-[min(15vh,130px)]" onKeyDown={handlePaletteKeyDown}>
-          <div className="absolute inset-0 bg-[#101210]/80 backdrop-blur-sm" onClick={() => setPaletteOpen(false)} aria-hidden="true" />
-          <div ref={paletteDialogRef} role="dialog" aria-modal="true" aria-label="Search and open tools" className="relative flex max-h-[calc(100dvh-32px)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-white/15 bg-[#1B2420] shadow-2xl shadow-black/60 sm:max-h-[min(75dvh,640px)]">
-            <div className="flex shrink-0 items-center gap-2 border-b border-white/10 px-3 py-3 focus-within:border-emerald-300/50 sm:gap-3 sm:px-4">
-              <Search size={19} className="shrink-0 text-[#86EFAC]" aria-hidden="true" />
+        <div
+          className="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[12vh]"
+          onKeyDown={handlePaletteKeyDown}
+        >
+          <div
+            className="fixed inset-0 bg-[#06080D]/80 backdrop-blur-md"
+            onClick={() => setPaletteOpen(false)}
+            aria-hidden="true"
+          />
+          <div
+            ref={paletteDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Search tools"
+            className="relative flex max-h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/15 bg-[#0F131E] shadow-2xl shadow-black/80 ring-1 ring-white/10"
+          >
+            {/* Input bar */}
+            <div className="flex shrink-0 items-center gap-3 border-b border-white/10 px-4 py-3.5">
+              <Search size={18} className="text-emerald-400" />
               <input
                 ref={paletteRef}
                 type="text"
                 value={paletteQuery}
-                onChange={(event) => setPaletteQuery(event.target.value)}
-                placeholder="Search tools or categories..."
+                onChange={(e) => setPaletteQuery(e.target.value)}
+                placeholder="Type a tool name, category, or command..."
                 aria-label="Search tools in command palette"
-                aria-controls="palette-results"
-                aria-activedescendant={paletteResults[paletteIndex] ? `palette-tool-${paletteResults[paletteIndex].id}` : undefined}
-                role="combobox"
-                aria-expanded="true"
-                aria-autocomplete="list"
-                autoComplete="off"
-                spellCheck={false}
-                className="min-w-0 flex-1 border-0 bg-transparent py-2 text-sm text-white outline-none ring-0 shadow-none placeholder:text-slate-500 focus:border-0 focus:outline-none focus:ring-0 focus:shadow-none"
-                style={{ outline: "none", boxShadow: "none" }}
+                className="min-w-0 flex-1 border-0 bg-transparent text-sm text-white placeholder-slate-500 outline-none focus:ring-0"
               />
-              <button type="button" onClick={() => setPaletteOpen(false)} aria-label="Close command palette" className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-white/10 text-slate-400 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-300"><X size={17}/></button>
+              <span className="rounded border border-white/10 bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] text-slate-400">
+                ESC
+              </span>
+              <button
+                type="button"
+                onClick={() => setPaletteOpen(false)}
+                className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:text-white"
+              >
+                <X size={15} />
+              </button>
             </div>
-            <div id="palette-results" role="listbox" aria-label="Matching tools" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
-              {!paletteQuery.trim() && <p className="px-3 pb-2 pt-2 text-[11px] font-semibold uppercase tracking-widest text-slate-500">Favorites, recent & all tools</p>}
-              {paletteResults.length ? paletteResults.map((tool, index) => {
-                const Icon = tool.icon;
-                const selected = index === paletteIndex;
-                return (
-                  <button
-                    key={tool.id}
-                    type="button"
-                    id={`palette-tool-${tool.id}`}
-                    role="option"
-                    aria-selected={selected}
-                    onMouseEnter={() => setPaletteIndex(index)}
-                    onClick={() => openFromPalette(tool.id)}
-                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors ${selected ? "bg-emerald-400/10 text-white" : "text-slate-300 hover:bg-white/5"}`}
-                  >
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[.04] text-[#86EFAC]"><Icon size={18}/></span>
-                    <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{tool.name}</span><span className="block truncate text-xs text-slate-500">{tool.category}</span></span>
-                    {favoriteSet.has(String(tool.id)) && <Star size={15} className="shrink-0 text-[#86EFAC]" fill="currentColor" aria-label="Favorite" />}
-                    {selected && <CornerDownLeft size={16} className="shrink-0 text-slate-500" aria-hidden="true" />}
-                  </button>
-                );
-              }) : <p className="px-4 py-10 text-center text-sm text-slate-400">No matching tools. Try another keyword.</p>}
+
+            {/* List */}
+            <div className="min-h-0 flex-1 overflow-y-auto p-2">
+              {!paletteQuery.trim() && (
+                <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  Quick Access & Directory
+                </div>
+              )}
+              {paletteResults.length ? (
+                paletteResults.map((tool, index) => {
+                  const Icon = tool.icon;
+                  const selected = index === paletteIndex;
+                  const meta = categoryMeta[tool.category] || {
+                    color: "#10b981",
+                    badge: tool.category,
+                  };
+
+                  return (
+                    <button
+                      key={tool.id}
+                      type="button"
+                      onMouseEnter={() => setPaletteIndex(index)}
+                      onClick={() => {
+                        setPaletteOpen(false);
+                        openTool(tool.id);
+                      }}
+                      className={`flex w-full items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-left transition-all ${
+                        selected
+                          ? "bg-emerald-500/10 text-white ring-1 ring-emerald-500/30"
+                          : "text-slate-300 hover:bg-white/[0.04]"
+                      }`}
+                    >
+                      <span
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03]"
+                        style={{ color: meta.color }}
+                      >
+                        <Icon size={18} />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate text-sm font-semibold">{tool.name}</span>
+                          <span
+                            className="rounded px-1.5 py-0.2 text-[10px] font-bold"
+                            style={{
+                              backgroundColor: `${meta.color}15`,
+                              color: meta.color,
+                            }}
+                          >
+                            {tool.category}
+                          </span>
+                        </div>
+                        <span className="block truncate text-xs text-slate-400">
+                          {tool.description}
+                        </span>
+                      </div>
+                      {favoriteSet.has(String(tool.id)) && (
+                        <Star size={14} className="text-amber-400" fill="currentColor" />
+                      )}
+                      {selected && (
+                        <span className="flex items-center gap-1 font-mono text-xs text-emerald-400">
+                          Enter <CornerDownLeft size={13} />
+                        </span>
+                      )}
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="px-4 py-12 text-center text-sm text-slate-400">
+                  No tools found for "{paletteQuery}". Try another keyword.
+                </div>
+              )}
             </div>
-            <div className="hidden shrink-0 flex-wrap items-center gap-4 border-t border-white/10 px-4 py-3 text-[11px] text-slate-500 sm:flex">
-              <span className="inline-flex items-center gap-1"><ArrowUp size={13}/><ArrowDown size={13}/> Navigate</span>
-              <span className="inline-flex items-center gap-1"><CornerDownLeft size={13}/> Open</span>
-              <span>Esc close</span>
-              <span className="ml-auto">{paletteResults.length} tools</span>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between border-t border-white/10 bg-[#090C14] px-4 py-2.5 text-[11px] text-slate-500">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center gap-1">
+                  <ArrowUp size={11} /> <ArrowDown size={11} /> Navigate
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <CornerDownLeft size={11} /> Open tool
+                </span>
+              </div>
+              <span>{paletteResults.length} tools available</span>
             </div>
           </div>
         </div>
       )}
-      <div aria-hidden="true" className="pointer-events-none absolute left-[-180px] top-10 h-[460px] w-[460px] rounded-full bg-emerald-500/[.035] blur-[125px]" />
-      <div aria-hidden="true" className="pointer-events-none absolute right-[-170px] top-[700px] h-[440px] w-[440px] rounded-full bg-green-500/[.035] blur-[130px]" />
-      {/* ================= SIMPLE CENTERED HERO ================= */}
-      <section className="relative mx-auto flex max-w-7xl flex-col items-center px-5 pb-20 pt-24 text-center sm:px-8 sm:pb-28 sm:pt-32 lg:px-10 lg:pt-36">
-        <div className="max-w-3xl">
-          <p className="mb-6 inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[.04] px-4 py-2 text-xs font-medium tracking-wide text-[#B4F5CA]">
-            Your everyday digital toolbox
-          </p>
 
-          <h1 className="text-[clamp(2.5rem,6vw,5.25rem)] font-extrabold leading-[1.1] tracking-[-.055em] text-white">
-            Everything you need.
-            <span className="block text-[#86EFAC]">Nothing you don't.</span>
-          </h1>
+      {/* ================= HERO SECTION ================= */}
+      <section className="relative mx-auto flex max-w-7xl flex-col items-center px-4 pb-16 pt-16 text-center sm:px-8 sm:pb-24 sm:pt-24 lg:px-10 lg:pt-28">
+        {/* Glow ambient highlight behind hero */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-10 h-[380px] w-full max-w-4xl -translate-x-1/2 rounded-full bg-gradient-to-tr from-emerald-500/10 via-teal-500/10 to-transparent blur-[120px]"
+        />
 
-          <p className="mx-auto mt-7 max-w-xl text-sm leading-7 text-slate-400 sm:text-base sm:leading-8">
-            Powerful little tools for your everyday workflow. Edit images,
-            transform text, format code, and get things done — all in one place.
-          </p>
+        {/* Announcement Pill */}
+        <div className="relative mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/[0.08] px-4 py-1.5 text-xs font-semibold text-emerald-300 shadow-sm backdrop-blur-md transition-all hover:border-emerald-500/50 hover:bg-emerald-500/[0.12]">
+          <Sparkles size={14} className="text-emerald-400 animate-pulse" />
+          <span>ToolVerse 2.0 • 22+ Client-Side Utilities</span>
+          <span className="text-emerald-500/40">|</span>
+          <span className="text-slate-300">100% In-Memory</span>
+          <ChevronRight size={13} className="text-emerald-400" />
+        </div>
 
-          {/* Prominent search: shares state with the category filters below. */}
-          <div role="search" className="mx-auto mt-9 w-full max-w-2xl">
-            <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-white/15 bg-[#1B2420] px-2.5 py-2 transition-colors duration-150 focus-within:border-[#86EFAC]/60 sm:gap-3 sm:px-5 sm:py-2.5">
-              <Search size={21} className="shrink-0 text-slate-400" aria-hidden="true" />
-              <input
-                ref={searchRef}
-                type="text"
-                inputMode="search"
-                autoComplete="off"
-                spellCheck={false}
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                onKeyDown={(event) => { if (event.key === "Enter") showResults(); }}
-                placeholder="Search tools..."
-                aria-label="Search all ToolVerse tools"
-                aria-controls="tool-results"
-                className="block min-w-0 w-0 flex-1 appearance-none rounded-none border-0 bg-transparent p-0 py-2 text-sm text-white shadow-none ring-0 outline-none placeholder:text-slate-500 focus:border-0 focus:shadow-none focus:ring-0 focus:outline-none focus-visible:outline-none focus-visible:ring-0 sm:text-base"
-                style={{ outline: "none", boxShadow: "none", WebkitAppearance: "none" }}
-              />
-              {search ? (
-                <button type="button" onClick={() => {setSearch(""); searchRef.current?.focus();}} aria-label="Clear search" className="grid h-10 w-10 shrink-0 place-items-center rounded-md text-slate-400 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-200"><X size={18} /></button>
-              ) : (
-                <button type="button" onClick={() => setPaletteOpen(true)} title="Open command palette" aria-label="Open command palette" className="hidden items-center gap-1 rounded-md border border-white/10 px-2 py-1 text-xs text-slate-500 hover:border-emerald-300/40 hover:text-[#B4F5CA] sm:inline-flex"><Command size={12} /> K</button>
-              )}
-              <button type="button" onClick={showResults} className="shrink-0 rounded-xl bg-[#86EFAC] px-3 py-3 text-xs font-semibold text-[#101210] transition-colors hover:bg-[#A7F3C2] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-200 sm:px-4 sm:text-sm">Search</button>
-            </div>
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-400">
-              <span className="mr-1">Popular:</span>
-              {popularTools.map((tool) => (
-                <button key={tool.id} type="button" onClick={() => openTool(tool.id)} className="rounded-full border border-white/10 bg-white/[.04] px-3 py-1.5 text-slate-300 hover:border-emerald-300/40 hover:text-[#B4F5CA]">
-                  {tool.name}
-                </button>
-              ))}
-            </div>
-          </div>
+        {/* Main H1 Headline */}
+        <h1 className="max-w-4xl text-4xl font-black tracking-tight text-white sm:text-6xl lg:text-7xl lg:leading-[1.08]">
+          The developer & creator{" "}
+          <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
+            multi-tool.
+          </span>
+        </h1>
 
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
+        {/* Subtitle */}
+        <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-slate-300 sm:text-lg">
+          Compress images, format JSON, inspect tokens, generate cryptographic passwords, and clean
+          text. <strong>100% private in your browser</strong> with zero cloud uploads and zero
+          latency.
+        </p>
+
+        {/* Prominent Search Bar */}
+        <div role="search" className="relative z-10 mx-auto mt-10 w-full max-w-2xl">
+          <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-[#101522]/90 p-2 shadow-2xl shadow-black/60 ring-1 ring-white/5 backdrop-blur-xl transition-all focus-within:border-emerald-500/60 focus-within:ring-2 focus-within:ring-emerald-500/20 sm:p-2.5">
+            <Search size={20} className="ml-3 shrink-0 text-slate-400" />
+            <input
+              ref={searchRef}
+              type="text"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search all 22 tools (e.g. compress, qr, json, jwt)..."
+              aria-label="Search all tools"
+              className="min-w-0 flex-1 border-0 bg-transparent text-sm text-white placeholder-slate-500 outline-none focus:ring-0 sm:text-base"
+            />
+            {search ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  searchRef.current?.focus();
+                }}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-white"
+                aria-label="Clear search"
+              >
+                <X size={16} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setPaletteOpen(true)}
+                className="hidden items-center gap-1 rounded-lg border border-white/10 bg-white/[0.05] px-2 py-1 text-xs text-slate-400 hover:border-emerald-500/30 hover:text-white sm:flex"
+              >
+                <Command size={12} /> K
+              </button>
+            )}
             <a
               href="#tools"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#86EFAC] px-6 py-3.5 text-sm font-semibold text-[#101210] hover:bg-[#A7F3C2]"
+              className="shrink-0 rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-bold text-[#022c22] shadow-sm transition-all hover:bg-emerald-400 hover:shadow-emerald-500/30 sm:px-5 sm:text-sm"
             >
-              Explore all tools
-              <ArrowRight size={18} />
+              Explore
             </a>
-            <span className="text-sm text-slate-500">{tools.length} tools. Free to use.</span>
           </div>
 
-          <div className="mt-9 flex flex-wrap justify-center gap-x-6 gap-y-3 text-xs text-slate-400 sm:text-sm">
-            <span className="inline-flex items-center gap-2"><Check size={16} className="text-[#86EFAC]" /> No signup needed</span>
-            <span className="inline-flex items-center gap-2"><Check size={16} className="text-[#86EFAC]" /> Browser-based</span>
-            <span className="inline-flex items-center gap-2"><Check size={16} className="text-[#86EFAC]" /> Easy to use</span>
+          {/* Popular quick tags */}
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-400">
+            <span className="font-medium text-slate-500">Quick Jump:</span>
+            {popularTools.map((tool) => (
+              <button
+                key={tool.id}
+                type="button"
+                onClick={() => openTool(tool.id)}
+                className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 font-medium text-slate-300 transition-all hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300"
+              >
+                {tool.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ================= INTERACTIVE HERO PLAYGROUND ================= */}
+        <div className="mt-12 w-full max-w-3xl rounded-2xl border border-white/10 bg-[#0E131E]/90 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
+              <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Interactive Instant Sandbox</span>
+            </div>
+
+            {/* Sandbox Tabs */}
+            <div className="flex rounded-lg border border-white/10 bg-white/[0.02] p-1">
+              <button
+                type="button"
+                onClick={() => setHeroTab("text")}
+                className={`rounded-md px-3 py-1 text-xs font-semibold transition-all ${
+                  heroTab === "text"
+                    ? "bg-emerald-500/20 text-emerald-300 shadow-sm"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Live Text Stats
+              </button>
+              <button
+                type="button"
+                onClick={() => setHeroTab("password")}
+                className={`rounded-md px-3 py-1 text-xs font-semibold transition-all ${
+                  heroTab === "password"
+                    ? "bg-emerald-500/20 text-emerald-300 shadow-sm"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Instant Password
+              </button>
+              <button
+                type="button"
+                onClick={() => setHeroTab("qr")}
+                className={`rounded-md px-3 py-1 text-xs font-semibold transition-all ${
+                  heroTab === "qr"
+                    ? "bg-emerald-500/20 text-emerald-300 shadow-sm"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Live QR Preview
+              </button>
+            </div>
+          </div>
+
+          {/* Tab 1: Live Text & Case */}
+          {heroTab === "text" && (
+            <div className="mt-4 text-left">
+              <textarea
+                value={heroText}
+                onChange={(e) => setHeroText(e.target.value)}
+                placeholder="Type or paste any text to see real-time character & word analysis..."
+                rows={3}
+                className="w-full resize-none rounded-xl border border-white/10 bg-[#090D15] p-3 text-sm text-slate-200 outline-none transition focus:border-emerald-500/50"
+              />
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-4 text-xs font-medium text-slate-400">
+                  <span>
+                    Words: <strong className="text-white">{heroWords}</strong>
+                  </span>
+                  <span>
+                    Characters: <strong className="text-white">{heroChars}</strong>
+                  </span>
+                  <span>
+                    Reading time:{" "}
+                    <strong className="text-white">
+                      {Math.max(1, Math.ceil(heroWords / 200))} min
+                    </strong>
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setHeroText(heroText.toUpperCase())}
+                    className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-slate-300 hover:bg-white/[0.08]"
+                  >
+                    UPPER
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHeroText(heroText.toLowerCase())}
+                    className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-slate-300 hover:bg-white/[0.08]"
+                  >
+                    lower
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(heroText);
+                      setHeroCopied(true);
+                      setTimeout(() => setHeroCopied(false), 2000);
+                    }}
+                    className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-300 hover:bg-emerald-500/20"
+                  >
+                    {heroCopied ? <Check size={12} /> : <Copy size={12} />}
+                    <span>{heroCopied ? "Copied" : "Copy"}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tab 2: Instant Password */}
+          {heroTab === "password" && (
+            <div className="mt-4 text-left">
+              <div className="flex items-center gap-3">
+                <div className="flex-1 rounded-xl border border-white/10 bg-[#090D15] px-4 py-3 font-mono text-sm tracking-wider text-emerald-400">
+                  {heroPassword}
+                </div>
+                <button
+                  type="button"
+                  onClick={generateHeroPassword}
+                  className="flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-4 text-xs font-semibold text-white hover:bg-white/[0.09]"
+                >
+                  <RefreshCw size={14} /> Regenerate
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(heroPassword);
+                    setHeroCopied(true);
+                    setTimeout(() => setHeroCopied(false), 2000);
+                  }}
+                  className="flex h-11 items-center gap-2 rounded-xl bg-emerald-500 px-4 text-xs font-bold text-[#022c22] hover:bg-emerald-400"
+                >
+                  {heroCopied ? <Check size={14} /> : <Copy size={14} />}
+                  <span>{heroCopied ? "Copied" : "Copy"}</span>
+                </button>
+              </div>
+              <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
+                <span>Length: {heroPassLength} chars</span>
+                <input
+                  type="range"
+                  min="8"
+                  max="32"
+                  value={heroPassLength}
+                  onChange={(e) => {
+                    setHeroPassLength(Number(e.target.value));
+                    generateHeroPassword();
+                  }}
+                  className="w-48 accent-emerald-500"
+                />
+                <span className="font-semibold text-emerald-400">Entropy: High</span>
+              </div>
+            </div>
+          )}
+
+          {/* Tab 3: Live QR Preview */}
+          {heroTab === "qr" && (
+            <div className="mt-4 flex flex-col items-center gap-4 text-left sm:flex-row">
+              <div className="flex-1 w-full">
+                <label className="mb-1 block text-xs font-medium text-slate-400">
+                  Target URL or Text:
+                </label>
+                <input
+                  type="text"
+                  value={heroQrInput}
+                  onChange={(e) => setHeroQrInput(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-[#090D15] p-3 text-sm text-slate-200 outline-none focus:border-emerald-500/50"
+                />
+                <p className="mt-2 text-xs text-slate-400">
+                  Renders client-side in &lt;10ms. Open the full QR tool for custom colors & SVG.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => openTool("qr")}
+                  className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:underline"
+                >
+                  Open advanced QR generator <ArrowRight size={13} />
+                </button>
+              </div>
+              {heroQrUrl && (
+                <div className="rounded-xl border border-white/10 bg-white p-2 shadow-lg">
+                  <img src={heroQrUrl} alt="Live QR" className="h-28 w-28" />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Metrics trust bar */}
+        <div className="mt-14 grid w-full max-w-4xl grid-cols-2 gap-4 border-t border-white/[0.08] pt-8 text-center sm:grid-cols-4">
+          <div className="flex flex-col items-center">
+            <span className="text-2xl font-black text-white sm:text-3xl">22+</span>
+            <span className="text-xs font-medium text-slate-400">Free Client Tools</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="text-2xl font-black text-emerald-400 sm:text-3xl">0 ms</span>
+            <span className="text-xs font-medium text-slate-400">Server Latency</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="text-2xl font-black text-teal-400 sm:text-3xl">100%</span>
+            <span className="text-xs font-medium text-slate-400">In-Browser Memory</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="text-2xl font-black text-white sm:text-3xl">Zero</span>
+            <span className="text-xs font-medium text-slate-400">Account Walls</span>
           </div>
         </div>
       </section>
@@ -366,195 +746,180 @@ export default function Landing({ onOpenTool = navigateToTool }) {
       {/* ================= TOOL DIRECTORY ================= */}
       <section
         id="tools"
-        className="scroll-mt-24 border-t border-white/[.06] bg-[#101711]/50 py-14 sm:py-24"
+        className="scroll-mt-20 border-t border-white/[0.08] bg-[#0A0D15]/80 py-16 sm:py-24"
       >
-        <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-          <div className="mb-9 flex flex-wrap items-end justify-between gap-6">
+        <div className="mx-auto max-w-7xl px-4 sm:px-8 lg:px-10">
+          {/* Header */}
+          <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div>
-              <p className="mb-4 text-xs font-bold tracking-[.22em] text-[#86EFAC]">
-                THE TOOLKIT
+              <p className="text-xs font-bold uppercase tracking-widest text-emerald-400">
+                THE SUITE
               </p>
-
-              <h2 className="text-2xl font-bold tracking-tight text-white sm:text-4xl">
-                Tools for every{" "}
-                <span className="text-[#86EFAC]">
-                  little task.
-                </span>
+              <h2 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">
+                Explore All Utilities
               </h2>
-
-              <p className="mt-4 text-sm leading-7 text-slate-400 sm:text-base">
-                Find what you need and get back to what matters.
+              <p className="mt-2 max-w-xl text-sm text-slate-400">
+                Fast, dependable tools engineered for daily workflows. Click any card to launch.
               </p>
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <Layers3 size={16} />
-              {tools.length} tools available
+            {/* View Mode & Count */}
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-medium text-slate-400">
+                Showing <strong className="text-white">{filtered.length}</strong> of {tools.length}{" "}
+                tools
+              </span>
+              <div className="flex rounded-xl border border-white/10 bg-white/[0.03] p-1">
+                <button
+                  type="button"
+                  onClick={() => changeViewMode("grid")}
+                  aria-label="Grid view"
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg transition-all ${
+                    viewMode === "grid"
+                      ? "bg-emerald-500/20 text-emerald-300"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <LayoutGrid size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => changeViewMode("list")}
+                  aria-label="List view"
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg transition-all ${
+                    viewMode === "list"
+                      ? "bg-emerald-500/20 text-emerald-300"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <List size={16} />
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Saved tools: personal preferences stay in this browser. */}
+          {/* Recently Used Tray */}
           {recentTools.length > 0 && (
-            <div className="mb-8 rounded-2xl border border-white/10 bg-white/[.025] p-4 sm:p-5">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <h3 className="inline-flex items-center gap-2 text-sm font-semibold text-white"><Clock3 size={16} className="text-[#86EFAC]" /> Recently used</h3>
-                <button type="button" onClick={() => setRecents([])} className="min-h-11 px-2 text-xs text-slate-400 hover:text-white">Clear history</button>
+            <div className="mb-8 rounded-2xl border border-white/[0.08] bg-[#101522]/80 p-4 backdrop-blur-md">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="flex items-center gap-2 text-xs font-semibold text-slate-300">
+                  <Clock3 size={14} className="text-emerald-400" /> Recently Used
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setRecents([])}
+                  className="text-xs text-slate-500 hover:text-slate-300"
+                >
+                  Clear history
+                </button>
               </div>
               <div className="flex flex-wrap gap-2">
                 {recentTools.map((tool) => (
-                  <button key={tool.id} type="button" onClick={() => openTool(tool.id)} className="min-h-11 rounded-lg border border-white/10 bg-[#1B2420] px-3 py-2.5 text-xs text-slate-200 transition-colors hover:border-emerald-300/40 hover:text-[#B4F5CA]">
-                    {tool.name}
+                  <button
+                    key={tool.id}
+                    type="button"
+                    onClick={() => openTool(tool.id)}
+                    className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-slate-200 transition-all hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300"
+                  >
+                    <span>{tool.name}</span>
+                    <ArrowUpRight size={13} className="text-slate-400" />
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          <div className="mb-6 flex flex-wrap items-center gap-2">
-            <button type="button" aria-pressed={!favoritesOnly} onClick={() => setFavoritesOnly(false)} className={`rounded-full border px-4 py-2 text-xs font-semibold transition-colors sm:text-sm ${!favoritesOnly ? "border-emerald-300/50 bg-emerald-400/10 text-[#B4F5CA]" : "border-white/10 text-slate-400 hover:text-white"}`}>All tools</button>
-            <button type="button" aria-pressed={favoritesOnly} onClick={() => setFavoritesOnly(true)} className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition-colors sm:text-sm ${favoritesOnly ? "border-emerald-300/50 bg-emerald-400/10 text-[#B4F5CA]" : "border-white/10 text-slate-400 hover:text-white"}`}><Star size={14} fill={favoritesOnly ? "currentColor" : "none"} /> Favorites <span className="text-xs opacity-60">{favorites.length}</span></button>
-          </div>
-
-          {/* Active search summary */}
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3" aria-live="polite">
-            <p className="text-sm text-slate-400">
-              <span className="font-semibold text-white">{filtered.length}</span> of {tools.length} tools
-              {query && <> matching <span className="font-medium text-[#B4F5CA]">“{search.trim()}”</span></>}
-            </p>
-            {(search || category !== "All tools" || favoritesOnly) && (
-              <button type="button" onClick={() => { setSearch(""); setCategory("All tools"); setFavoritesOnly(false); }} className="inline-flex items-center gap-1.5 text-xs text-[#86EFAC] hover:text-[#B4F5CA]">
-                <X size={14}/> Reset filters
-              </button>
-            )}
-          </div>
-
-          {/* Category filters */}
-          <div
-            className="mb-9 flex flex-wrap gap-2"
-            role="group"
-            aria-label="Filter tools by category"
-          >
-            {categories.map((item) => (
+          {/* Filter Bar: Categories & Favorites */}
+          <div className="mb-8 flex flex-col gap-4">
+            <div className="flex flex-wrap items-center gap-2">
               <button
-                key={item}
                 type="button"
-                onClick={() => setCategory(item)}
-                aria-pressed={category === item}
-                className={`rounded-full border px-4 py-2 text-xs font-semibold transition sm:text-sm ${
-                  category === item
-                    ? "border-emerald-300/50 bg-emerald-400/10 text-[#B4F5CA]"
-                    : "border-white/10 bg-white/[.03] text-slate-400 hover:border-white/25 hover:text-white"
+                onClick={() => {
+                  setFavoritesOnly(false);
+                  setCurrentPage(1);
+                }}
+                className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+                  !favoritesOnly
+                    ? "bg-emerald-500 text-[#022c22] shadow-sm shadow-emerald-500/25"
+                    : "border border-white/10 bg-white/[0.03] text-slate-400 hover:text-white"
                 }`}
               >
-                {item}
+                All Tools
               </button>
-            ))}
-          </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setFavoritesOnly((prev) => !prev);
+                  setCurrentPage(1);
+                }}
+                className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+                  favoritesOnly
+                    ? "bg-amber-400 text-[#1f1604] shadow-sm shadow-amber-400/25"
+                    : "border border-white/10 bg-white/[0.03] text-slate-400 hover:text-white"
+                }`}
+              >
+                <Star size={13} fill={favoritesOnly ? "currentColor" : "none"} />
+                <span>Favorites</span>
+                {favorites.length > 0 && (
+                  <span className="rounded-full bg-black/20 px-1.5 py-0.2 text-[10px]">
+                    {favorites.length}
+                  </span>
+                )}
+              </button>
+            </div>
 
-          {/* Tool cards */}
-          <div id="tool-results" className="scroll-mt-24 grid gap-3 sm:scroll-mt-28 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-            {paginatedTools.map((tool) => {
-              const Icon = tool.icon;
+            {/* Category pills */}
+            <div
+              role="group"
+              aria-label="Filter tools by category"
+              className="flex flex-wrap gap-2"
+            >
+              {categories.map((cat) => {
+                const isSelected = category === cat && !favoritesOnly;
+                const count =
+                  cat === "All tools"
+                    ? tools.length
+                    : tools.filter((t) => t.category === cat).length;
 
-              return (
-                <div key={tool.id} className="group relative min-h-[175px] overflow-hidden rounded-[22px] border border-white/[.09] bg-gradient-to-br from-[#1D2721] to-[#151D18] transition-colors duration-150 hover:border-emerald-300/45 sm:min-h-[226px]">
+                return (
                   <button
+                    key={cat}
                     type="button"
-                    onClick={() => openTool(tool.id)}
-                    className="flex h-full min-h-[175px] w-full flex-col items-start p-5 pr-16 text-left focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-emerald-400 sm:min-h-[226px] sm:p-6"
-                  >
-                  {/* Tool icon */}
-                  <span className="mb-6 grid h-12 w-12 place-items-center rounded-2xl border border-emerald-400/20 bg-emerald-400/10 text-[#86EFAC] ">
-                    <Icon size={23} />
-                  </span>
-
-                  <span className="mb-2 text-[10px] font-bold uppercase tracking-[.14em] text-[#86EFAC]/85">
-                    {tool.category}
-                  </span>
-
-                  <strong className="mb-2 text-base font-semibold tracking-tight text-white">
-                    {tool.name}
-                  </strong>
-
-                  <span className="max-w-[90%] text-sm leading-6 text-slate-400">
-                    {tool.description}
-                  </span>
-
-                  <span className="absolute right-6 bottom-6 text-slate-500 transition-colors group-hover:text-[#86EFAC]" aria-hidden="true">
-                    <ArrowRight size={18} />
-                  </span>
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={`${favoriteSet.has(String(tool.id)) ? "Remove" : "Add"} ${tool.name} ${favoriteSet.has(String(tool.id)) ? "from" : "to"} favorites`}
-                    aria-pressed={favoriteSet.has(String(tool.id))}
-                    onClick={() => toggleFavorite(tool.id)}
-                    className={`absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-lg border transition-colors focus-visible:outline-2 focus-visible:outline-emerald-300 ${favoriteSet.has(String(tool.id)) ? "border-emerald-300/40 bg-emerald-400/10 text-[#86EFAC]" : "border-white/10 bg-[#223027] text-slate-400 hover:text-[#86EFAC]"}`}
-                  >
-                    <Star size={17} fill={favoriteSet.has(String(tool.id)) ? "currentColor" : "none"} />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Compact, accessible pagination for the main tool directory. */}
-          {filtered.length > 0 && totalPages > 1 && (
-            <nav aria-label="Tool directory pages" className="mt-9 flex flex-col items-center gap-3">
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                <button
-                  type="button"
-                  disabled={safePage === 1}
-                  onClick={() => goToPage(safePage - 1)}
-                  className="min-h-11 rounded-lg border border-white/10 px-3 py-2.5 text-xs font-medium text-slate-300 transition-colors hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 sm:text-sm"
-                >
-                  Previous
-                </button>
-                {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
-                  <button
-                    type="button"
-                    key={page}
-                    onClick={() => goToPage(page)}
-                    aria-label={`Go to tool page ${page}`}
-                    aria-current={safePage === page ? "page" : undefined}
-                    className={`grid h-11 w-11 place-items-center rounded-lg border text-sm font-semibold transition-colors ${
-                      safePage === page
-                        ? "border-emerald-300/50 bg-emerald-400/10 text-[#B4F5CA]"
-                        : "border-white/10 text-slate-400 hover:border-white/25 hover:text-white"
+                    onClick={() => {
+                      setCategory(cat);
+                      setFavoritesOnly(false);
+                      setCurrentPage(1);
+                    }}
+                    className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all ${
+                      isSelected
+                        ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-300"
+                        : "border-white/10 bg-white/[0.02] text-slate-400 hover:border-white/20 hover:text-white"
                     }`}
                   >
-                    {page}
+                    <span>{cat}</span>
+                    <span className="text-[10px] opacity-60">({count})</span>
                   </button>
-                ))}
-                <button
-                  type="button"
-                  disabled={safePage === totalPages}
-                  onClick={() => goToPage(safePage + 1)}
-                  className="min-h-11 rounded-lg border border-white/10 px-3 py-2.5 text-xs font-medium text-slate-300 transition-colors hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 sm:text-sm"
-                >
-                  Next
-                </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ACTIVE FILTER STATUS */}
+          {(query || category !== "All tools" || favoritesOnly) && (
+            <div className="mb-6 flex items-center justify-between rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] px-4 py-2.5 text-xs text-slate-300">
+              <div>
+                Filtered by{" "}
+                {favoritesOnly && <span className="font-semibold text-amber-300">Favorites</span>}
+                {category !== "All tools" && (
+                  <span className="font-semibold text-emerald-300"> Category: {category}</span>
+                )}
+                {query && (
+                  <span>
+                    {" "}
+                    matching <strong className="text-white">"{search.trim()}"</strong>
+                  </span>
+                )}
               </div>
-              <p className="text-xs text-slate-500">
-                Showing {(safePage - 1) * TOOLS_PER_PAGE + 1}–{Math.min(safePage * TOOLS_PER_PAGE, filtered.length)} of {filtered.length} matching tools
-              </p>
-            </nav>
-          )}
-
-          {/* Empty search result */}
-          {filtered.length === 0 && (
-            <div className="rounded-xl border border-white/10 p-8 text-center">
-              <Search
-                size={25}
-                className="mx-auto mb-3 text-slate-500"
-              />
-
-              <p className="text-sm text-slate-400">
-                {favoritesOnly && favorites.length === 0
-                  ? "No favorites yet. Star a tool to save it here."
-                  : "No tools match these filters. Try another keyword or category."}
-              </p>
-
               <button
                 type="button"
                 onClick={() => {
@@ -562,120 +927,474 @@ export default function Landing({ onOpenTool = navigateToTool }) {
                   setCategory("All tools");
                   setFavoritesOnly(false);
                 }}
-                className="mt-4 text-sm font-semibold text-[#86EFAC] hover:text-[#B4F5CA]"
+                className="flex items-center gap-1 font-semibold text-emerald-400 hover:text-emerald-300"
               >
-                Clear filters
+                <X size={13} /> Reset
               </button>
+            </div>
+          )}
+
+          {/* ================= GRID VIEW ================= */}
+          {viewMode === "grid" && (
+            <div
+              id="tool-results"
+              className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+            >
+              {paginatedTools.map((tool) => {
+                const Icon = tool.icon;
+                const isFav = favoriteSet.has(String(tool.id));
+                const meta = categoryMeta[tool.category] || {
+                  color: "#10b981",
+                  badge: tool.category,
+                };
+
+                return (
+                  <div
+                    key={tool.id}
+                    onClick={() => openTool(tool.id)}
+                    className="group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111622]/80 p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:border-emerald-500/40 hover:bg-[#141B2B] hover:shadow-2xl hover:shadow-emerald-500/10"
+                  >
+                    {/* Top Row: Category + Star */}
+                    <div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span
+                          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
+                          style={{
+                            backgroundColor: `${meta.color}15`,
+                            color: meta.color,
+                            border: `1px solid ${meta.color}30`,
+                          }}
+                        >
+                          <span
+                            className="h-1.5 w-1.5 rounded-full"
+                            style={{ backgroundColor: meta.color }}
+                          />
+                          {tool.category}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={(e) => toggleFavorite(tool.id, e)}
+                          title={isFav ? "Remove favorite" : "Add to favorites"}
+                          className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
+                            isFav
+                              ? "text-amber-400"
+                              : "text-slate-500 hover:bg-white/[0.05] hover:text-slate-300"
+                          }`}
+                        >
+                          <Star size={16} fill={isFav ? "currentColor" : "none"} />
+                        </button>
+                      </div>
+
+                      {/* Icon & Title */}
+                      <div className="mt-5 flex items-center gap-3.5">
+                        <span
+                          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] shadow-inner transition-transform group-hover:scale-105"
+                          style={{ color: meta.color }}
+                        >
+                          <Icon size={24} />
+                        </span>
+                        <div>
+                          <h3 className="text-base font-bold text-white group-hover:text-emerald-300">
+                            {tool.name}
+                          </h3>
+                          {tool.tag && (
+                            <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
+                              {tool.tag}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <p className="mt-3.5 text-xs leading-relaxed text-slate-400">
+                        {tool.description}
+                      </p>
+                    </div>
+
+                    {/* Bottom Action Footer */}
+                    <div className="mt-6 flex items-center justify-between border-t border-white/[0.06] pt-4 text-xs font-semibold text-slate-400 transition-colors group-hover:text-emerald-400">
+                      <span>Launch tool</span>
+                      <ArrowRight
+                        size={15}
+                        className="transition-transform group-hover:translate-x-1"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ================= LIST VIEW ================= */}
+          {viewMode === "list" && (
+            <div id="tool-results" className="flex flex-col gap-2">
+              {paginatedTools.map((tool) => {
+                const Icon = tool.icon;
+                const isFav = favoriteSet.has(String(tool.id));
+                const meta = categoryMeta[tool.category] || {
+                  color: "#10b981",
+                  badge: tool.category,
+                };
+
+                return (
+                  <div
+                    key={tool.id}
+                    onClick={() => openTool(tool.id)}
+                    className="group flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-white/[0.08] bg-[#111622]/70 px-5 py-3.5 shadow-sm transition-all hover:border-emerald-500/40 hover:bg-[#141B2B]"
+                  >
+                    <div className="flex min-w-0 flex-1 items-center gap-4">
+                      <span
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03]"
+                        style={{ color: meta.color }}
+                      >
+                        <Icon size={20} />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2.5">
+                          <h3 className="truncate text-sm font-bold text-white group-hover:text-emerald-300">
+                            {tool.name}
+                          </h3>
+                          <span
+                            className="rounded px-2 py-0.5 text-[10px] font-semibold"
+                            style={{
+                              backgroundColor: `${meta.color}15`,
+                              color: meta.color,
+                            }}
+                          >
+                            {tool.category}
+                          </span>
+                        </div>
+                        <p className="truncate text-xs text-slate-400">{tool.description}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={(e) => toggleFavorite(tool.id, e)}
+                        className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                          isFav ? "text-amber-400" : "text-slate-500 hover:text-slate-300"
+                        }`}
+                      >
+                        <Star size={16} fill={isFav ? "currentColor" : "none"} />
+                      </button>
+                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.04] text-slate-400 group-hover:bg-emerald-500 group-hover:text-[#022c22]">
+                        <ArrowRight size={15} />
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Empty search */}
+          {filtered.length === 0 && (
+            <div className="rounded-2xl border border-white/10 bg-[#101522]/50 p-12 text-center">
+              <Search size={32} className="mx-auto mb-3 text-slate-500" />
+              <h3 className="text-base font-bold text-white">No matching tools found</h3>
+              <p className="mt-1 text-sm text-slate-400">
+                {favoritesOnly
+                  ? "You have not starred any tools yet. Click the star icon on any card to save it."
+                  : `No tools match "${search.trim()}". Try another query or category.`}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setCategory("All tools");
+                  setFavoritesOnly(false);
+                }}
+                className="mt-5 rounded-xl bg-emerald-500 px-4 py-2 text-xs font-bold text-[#022c22] hover:bg-emerald-400"
+              >
+                Clear all filters
+              </button>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {filtered.length > 0 && totalPages > 1 && (
+            <div className="mt-12 flex flex-col items-center justify-between gap-4 sm:flex-row">
+              <span className="text-xs text-slate-500">
+                Page {safePage} of {totalPages} • Showing {(safePage - 1) * TOOLS_PER_PAGE + 1}–
+                {Math.min(safePage * TOOLS_PER_PAGE, filtered.length)} of {filtered.length} tools
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={safePage === 1}
+                  onClick={() => goToPage(safePage - 1)}
+                  className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:border-white/20 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  Previous
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => goToPage(p)}
+                    className={`h-8 w-8 rounded-lg text-xs font-bold transition-all ${
+                      safePage === p
+                        ? "bg-emerald-500 text-[#022c22]"
+                        : "border border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  disabled={safePage === totalPages}
+                  onClick={() => goToPage(safePage + 1)}
+                  className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:border-white/20 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           )}
         </div>
       </section>
 
-      {/* ================= BENEFITS ================= */}
-      <section id="features" className="relative scroll-mt-24 border-t border-white/[.06] px-5 py-14 sm:px-8 sm:py-24">
+      {/* ================= ARCHITECTURE & WHY TOOLVERSE ================= */}
+      <section
+        id="features"
+        className="scroll-mt-20 border-t border-white/[0.08] px-4 py-16 sm:px-8 sm:py-24"
+      >
         <div className="mx-auto max-w-7xl">
           <div className="max-w-2xl">
-            <p className="mb-3 text-[11px] font-bold uppercase tracking-[.22em] text-[#86EFAC]">BUILT TO MAKE THINGS EASIER</p>
-            <h2 className="text-2xl font-bold tracking-tight text-white sm:text-4xl">Less switching tabs. <span className="text-[#86EFAC]">More getting done.</span></h2>
-            <p className="mt-4 text-sm leading-7 text-slate-400">A growing collection of everyday tools, together in one lightweight workspace.</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-emerald-400">
+              ENGINEERED FOR PRIVACY & SPEED
+            </p>
+            <h2 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">
+              Why ToolVerse is built differently.
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-400">
+              Unlike traditional utility sites that send your sensitive images, code, and tokens to
+              remote servers, ToolVerse processes everything in local browser memory.
+            </p>
           </div>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            {[
-              { icon: Zap, title: "Fast by design", text: "Open a tool and get started without an account or an elaborate setup." },
-              { icon: ShieldCheck, title: "Privacy-conscious", text: "Tools are designed to process data in your browser wherever possible." },
-              { icon: Globe2, title: "One place for more", text: "Images, writing, calculations, developer helpers and utilities together." },
-            ].map(({ icon: Icon, title, text }) => (
-              <div key={title} className="relative overflow-hidden rounded-[22px] border border-white/10 bg-gradient-to-br from-[#1E2922] to-[#111B15] p-6 transition-colors hover:border-emerald-400/40">
-                <span className="pointer-events-none absolute -right-16 -top-16 h-36 w-36 rounded-full bg-emerald-400/[.07] blur-3xl" />
-                <span className="mb-6 grid h-11 w-11 place-items-center rounded-xl border border-emerald-400/20 bg-emerald-400/10 text-[#86EFAC]"><Icon size={21} /></span>
-                <h3 className="text-base font-semibold text-white">{title}</h3>
-                <p className="mt-3 text-sm leading-7 text-slate-400">{text}</p>
-              </div>
-            ))}
+
+          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="group rounded-2xl border border-white/[0.08] bg-[#111622]/80 p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all hover:border-emerald-500/40 hover:bg-[#141B2B]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
+                <ShieldCheck size={22} />
+              </span>
+              <h3 className="mt-5 text-base font-bold text-white">100% Client-Side Privacy</h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                Images, PDFs, and tokens remain strictly inside your browser sandbox. Zero files are
+                ever transmitted or stored on cloud backends.
+              </p>
+            </div>
+
+            <div className="group rounded-2xl border border-white/[0.08] bg-[#111622]/80 p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all hover:border-teal-500/40 hover:bg-[#141B2B]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-teal-500/20 bg-teal-500/10 text-teal-300">
+                <Zap size={22} />
+              </span>
+              <h3 className="mt-5 text-base font-bold text-white">Zero-Latency Execution</h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                Powered by modern Canvas, WebCrypto, and Web Workers. Calculations and asset
+                compression execute at native local processor speed.
+              </p>
+            </div>
+
+            <div className="group rounded-2xl border border-white/[0.08] bg-[#111622]/80 p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all hover:border-cyan-500/40 hover:bg-[#141B2B]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-500/20 bg-cyan-500/10 text-cyan-300">
+                <Command size={22} />
+              </span>
+              <h3 className="mt-5 text-base font-bold text-white">Command-K Launcher</h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                Built for keyboard power users. Hit ⌘K or Ctrl+K from any screen to navigate between
+                any tool in milliseconds without touching a mouse.
+              </p>
+            </div>
+
+            <div className="group rounded-2xl border border-white/[0.08] bg-[#111622]/80 p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all hover:border-violet-500/40 hover:bg-[#141B2B]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-violet-500/20 bg-violet-500/10 text-violet-300">
+                <LockKeyhole size={22} />
+              </span>
+              <h3 className="mt-5 text-base font-bold text-white">Zero Signup Walls</h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                No credit cards, accounts, or rate-limit paywalls. Every utility is ready immediately
+                on page load.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ================= HOW IT WORKS ================= */}
-      <section id="how-it-works" className="scroll-mt-24 border-y border-white/[.06] bg-[#162019]/75 px-5 py-14 sm:px-8 sm:py-24">
+      <section
+        id="how-it-works"
+        className="scroll-mt-20 border-t border-white/[0.08] bg-[#0A0D15]/60 px-4 py-16 sm:px-8 sm:py-24"
+      >
         <div className="mx-auto max-w-7xl">
-          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
-              <p className="mb-3 text-[11px] font-bold tracking-[.22em] text-[#86EFAC]">THREE SIMPLE STEPS</p>
-              <h2 className="text-2xl font-bold text-white sm:text-4xl">Your next task, <span className="text-[#86EFAC]">simplified.</span></h2>
+              <p className="text-xs font-bold uppercase tracking-widest text-emerald-400">
+                STREAMLINED WORKFLOW
+              </p>
+              <h2 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">
+                Three simple steps. Zero setup.
+              </h2>
             </div>
-            <a href="#tools" className="inline-flex items-center gap-2 text-sm font-semibold text-[#86EFAC] transition hover:text-white">Start exploring <ArrowRight size={16} /></a>
+            <a
+              href="#tools"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300"
+            >
+              Start using tools <ArrowRight size={14} />
+            </a>
           </div>
-          <div className="relative mt-10 grid gap-4 md:grid-cols-3">
-            {[
-              { number: "01", icon: Search, title: "Find a tool", text: "Search by keyword or browse a category to find what you need." },
-              { number: "02", icon: MousePointerClick, title: "Make it yours", text: "Add your text, numbers or files and adjust the settings." },
-              { number: "03", icon: Download, title: "Get your result", text: "Copy, use or download the output and get on with your day." },
-            ].map(({ number, icon: Icon, title, text }) => (
-              <div key={number} className="rounded-[22px] border border-white/10 bg-[#1B2520] p-6">
-                <div className="mb-8 flex items-start justify-between"><span className="text-3xl font-black tracking-tight text-emerald-400/25">{number}</span><Icon size={22} className="text-[#86EFAC]" /></div>
-                <h3 className="text-base font-semibold text-white">{title}</h3>
-                <p className="mt-2 text-sm leading-7 text-slate-400">{text}</p>
-              </div>
-            ))}
+
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            <div className="rounded-2xl border border-white/[0.08] bg-[#111622]/80 p-6 backdrop-blur-xl">
+              <span className="font-mono text-3xl font-black text-emerald-400/30">01</span>
+              <h3 className="mt-4 text-base font-bold text-white">Select Your Tool</h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                Browse our categorized directory or press ⌘K to instantly launch any of the 22
+                utilities.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-white/[0.08] bg-[#111622]/80 p-6 backdrop-blur-xl">
+              <span className="font-mono text-3xl font-black text-teal-400/30">02</span>
+              <h3 className="mt-4 text-base font-bold text-white">Drop, Paste & Adjust</h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                Paste code, drag and drop images, or adjust precision sliders with instantaneous
+                real-time previews.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-white/[0.08] bg-[#111622]/80 p-6 backdrop-blur-xl">
+              <span className="font-mono text-3xl font-black text-cyan-400/30">03</span>
+              <h3 className="mt-4 text-base font-bold text-white">Copy or Export</h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                Download your compressed images, QR codes, or PDF documents, or copy clean output
+                with one click.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ================= ABOUT ================= */}
-      <section
-        id="about"
-        className="scroll-mt-24 px-5 py-14 sm:px-8 sm:py-24"
-      >
-        <div className="mx-auto flex max-w-7xl flex-col gap-8 rounded-[28px] border border-white/10 bg-gradient-to-br from-[#24352A] via-[#1C2820] to-[#17211A] p-8 sm:p-12 md:flex-row md:items-center">
-          <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl border border-emerald-300/20 bg-emerald-300/10 text-[#86EFAC]">
-            <LockKeyhole size={29} />
+      {/* ================= ABOUT / MISSION ================= */}
+      <section id="about" className="scroll-mt-20 px-4 py-16 sm:px-8 sm:py-24">
+        <div className="mx-auto flex max-w-7xl flex-col gap-8 rounded-3xl border border-white/10 bg-gradient-to-br from-[#131926] via-[#0E131E] to-[#0A0D15] p-8 sm:p-12 md:flex-row md:items-center">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+            <Cpu size={32} />
           </div>
 
           <div className="max-w-2xl">
-            <p className="mb-3 text-xs font-bold tracking-[.2em] text-[#86EFAC]">
-              BUILT FOR EVERYDAY WORK
+            <p className="text-xs font-bold uppercase tracking-widest text-emerald-400">
+              CLIENT-FIRST PHILOSOPHY
             </p>
-
-            <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-              Simple by design.{" "}
-              <span className="text-[#86EFAC]">
-                Useful by default.
-              </span>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+              Crafted for utility. Respectful by design.
             </h2>
-
-            <p className="mt-4 text-sm leading-7 text-slate-400 sm:text-base">
-              ToolVerse makes everyday digital tasks faster,
-              with straightforward browser-based tools and no
-              unnecessary signups. Image processing happens on
-              your device where supported.
+            <p className="mt-3 text-sm leading-relaxed text-slate-300">
+              ToolVerse was created to eliminate the friction of searching for one-off online tools
+              plagued by aggressive paywalls and forced logins. By leveraging modern client-side Web
+              APIs, we provide instant utility while respecting user privacy.
             </p>
           </div>
 
           <div className="md:ml-auto">
-            <Zap
-              className="hidden text-[#86EFAC]/30 md:block"
-              size={70}
-              strokeWidth={1}
-            />
+            <a
+              href="https://github.com/Tanvir-Azad-Mahir/toolverse"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.05] px-5 py-3 text-xs font-bold text-white transition hover:bg-white/[0.1]"
+            >
+              <GitBranch size={16} /> Open Source on GitHub
+            </a>
           </div>
         </div>
       </section>
 
-      {/* ================= CONTACT & FEEDBACK ================= */}
-      <section id="contact" className="scroll-mt-24 px-5 pb-24 pt-4 sm:px-8 sm:pb-28">
-        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[28px] border border-emerald-300/20 bg-gradient-to-br from-[#264633] via-[#18291F] to-[#171F1B] p-7 shadow-[0_0_65px_rgba(134,239,172,.045)] sm:p-12">
-          <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-emerald-400/10 blur-[80px]" />
-          <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 left-1/4 h-60 w-60 rounded-full bg-violet-400/10 blur-[80px]" />
+      {/* ================= FREQUENTLY ASKED QUESTIONS ================= */}
+      <section className="border-t border-white/[0.08] bg-[#0A0D15]/50 px-4 py-16 sm:px-8 sm:py-24">
+        <div className="mx-auto max-w-4xl">
+          <div className="text-center">
+            <p className="text-xs font-bold uppercase tracking-widest text-emerald-400">FAQ</p>
+            <h2 className="mt-2 text-3xl font-black tracking-tight text-white">
+              Frequently Asked Questions
+            </h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Everything you need to know about ToolVerse’s architecture and usage.
+            </p>
+          </div>
+
+          <div className="mt-10 flex flex-col gap-3">
+            {faqs.map(({ q, a }, idx) => {
+              const isOpen = openFaq === idx;
+              return (
+                <div
+                  key={q}
+                  className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111622]/80 backdrop-blur-md"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaq(isOpen ? null : idx)}
+                    className="flex w-full items-center justify-between p-5 text-left text-sm font-semibold text-white transition hover:text-emerald-300"
+                  >
+                    <span>{q}</span>
+                    <ChevronDown
+                      size={18}
+                      className={`shrink-0 text-slate-400 transition-transform ${
+                        isOpen ? "rotate-180 text-emerald-400" : ""
+                      }`}
+                    />
+                  </button>
+                  {isOpen && (
+                    <div className="border-t border-white/[0.05] px-5 pb-5 pt-3 text-xs leading-relaxed text-slate-400">
+                      {a}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= FEEDBACK & CONTACT ================= */}
+      <section id="contact" className="scroll-mt-20 px-4 pb-24 pt-10 sm:px-8">
+        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-[#102018] via-[#0E141F] to-[#0A0D15] p-8 shadow-2xl sm:p-12">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-emerald-500/10 blur-[80px]"
+          />
+
           <div className="relative flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
-            <div className="max-w-2xl">
-              <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-400/10 px-3 py-1.5 text-xs font-semibold text-[#B4F5CA]"><HeartHandshake size={15} /> OPEN TO FEEDBACK</span>
-              <h2 className="text-2xl font-bold tracking-tight text-white sm:text-4xl">Have an idea to make <span className="text-[#86EFAC]">ToolVerse better?</span></h2>
-              <p className="mt-4 text-sm leading-7 text-slate-300">Feel free to contact me for improvement advice, bug reports, feature suggestions or general feedback. Your ideas can help shape what comes next.</p>
+            <div className="max-w-xl">
+              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+                <HeartHandshake size={14} /> Open to Feedback & Contributions
+              </span>
+              <h2 className="mt-4 text-2xl font-black tracking-tight text-white sm:text-4xl">
+                Have an idea to make ToolVerse better?
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-300">
+                Found a bug, have a feature suggestion, or want a new tool added? Your feedback
+                shapes future updates.
+              </p>
             </div>
-            <div className="flex shrink-0 flex-col gap-3">
-              <a href="mailto:galvoid.tech@gmail.com?subject=ToolVerse%20Feedback" className="inline-flex items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 px-5 py-3.5 text-sm font-bold text-[#101210] shadow-[0_0_28px_rgba(134,239,172,.12)] transition-colors hover:brightness-110"><Mail size={18} /> Send feedback <ArrowUpRight size={16} /></a>
-              <a href="https://github.com/Tanvir-Azad-Mahir" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/[.05] px-5 py-3 text-sm font-semibold text-white transition hover:border-emerald-300/40 hover:bg-white/10"><GitBranch size={17} /> Developer's GitHub <ArrowUpRight size={15} /></a>
+
+            <div className="flex shrink-0 flex-col gap-3 sm:flex-row md:flex-col">
+              <a
+                href="mailto:galvoid.tech@gmail.com?subject=ToolVerse%20Suggestion%20or%20Feedback"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3.5 text-xs font-bold text-[#022c22] shadow-lg shadow-emerald-500/25 transition-all hover:bg-emerald-400 hover:shadow-emerald-500/35"
+              >
+                <Mail size={16} /> Send Direct Feedback
+              </a>
+              <a
+                href="https://github.com/Tanvir-Azad-Mahir/toolverse"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.05] px-5 py-3 text-xs font-semibold text-white transition hover:bg-white/[0.1]"
+              >
+                <GitBranch size={16} /> GitHub Issues & PRs
+              </a>
             </div>
           </div>
         </div>

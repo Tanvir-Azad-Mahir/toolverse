@@ -2,10 +2,10 @@ import { useMemo, useState } from "react";
 import { Check, Copy, Download, Table2 } from "lucide-react";
 
 const fieldClass =
-  "mt-2 min-h-52 w-full resize-y rounded-xl border border-white/10 bg-[#101610] px-4 py-3 font-mono text-sm leading-6 text-[#F0FDF4] outline-none transition-colors placeholder:text-[#81958A] focus:border-[#86EFAC]/60 focus:ring-0";
+  "mt-2 min-h-52 w-full resize-y rounded-xl border border-white/10 bg-[#101610] px-4 py-3 font-mono text-sm leading-6 text-[#F0FDF4] outline-none transition-colors placeholder:text-[#81958A] focus:border-[#10b981]/60 focus:ring-0";
 
 const panelClass =
-  "max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[#33443A] bg-[#101610] p-4 font-mono text-sm leading-6 text-[#D5EBDD]";
+  "max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#101610] p-4 font-mono text-sm leading-6 text-[#D5EBDD]";
 
 function downloadCSV(content) {
   const blob = new Blob([content], { type: "text/csv;charset=utf-8" });
@@ -36,7 +36,7 @@ function CopyButton({ text }) {
       type="button"
       onClick={copy}
       disabled={!text}
-      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#33443A] bg-[#202B24] px-5 py-3 text-sm font-semibold text-[#E0F2E5] transition-colors hover:border-[#86EFAC]/40 hover:bg-[#2A372E] disabled:cursor-not-allowed disabled:opacity-40"
+      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#202B24] px-5 py-3 text-sm font-semibold text-[#E0F2E5] transition-colors hover:border-[#10b981]/40 hover:bg-[#2A372E] disabled:cursor-not-allowed disabled:opacity-40"
     >
       {copied ? <Check size={17} /> : <Copy size={17} />}
       {copied ? "Copied" : "Copy CSV"}
@@ -75,7 +75,7 @@ export default function JSONToCSV() {
     <div className="space-y-6">
       <div>
         <h2 className="flex items-center gap-2 text-lg font-bold text-[#F0FDF4] sm:text-xl">
-          <Table2 size={21} className="text-[#86EFAC]" />
+          <Table2 size={21} className="text-[#10b981]" />
           JSON to CSV Converter
         </h2>
         <p className="mt-2 text-sm leading-6 text-[#A5B8AB]">
@@ -98,7 +98,7 @@ export default function JSONToCSV() {
         {parsed.error ? (
           <p role="alert" className="text-sm text-red-300">{parsed.error}</p>
         ) : (
-          <p className="text-sm text-[#86EFAC]">{parsed.rows} row(s) ready</p>
+          <p className="text-sm text-[#10b981]">{parsed.rows} row(s) ready</p>
         )}
       </div>
 
@@ -113,7 +113,7 @@ export default function JSONToCSV() {
           type="button"
           disabled={!parsed.csv}
           onClick={() => downloadCSV(parsed.csv)}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#86EFAC] px-5 py-3 text-sm font-bold text-[#101210] transition-colors hover:bg-[#A3F5BD] disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#10b981] px-5 py-3 text-sm font-bold text-[#07090E] transition-colors hover:bg-[#A3F5BD] disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Download size={17} />
           Download CSV

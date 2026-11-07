@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 const inputStyle =
-  "w-full min-h-[250px] resize-y rounded-xl border border-white/10 bg-[#101713] px-4 py-4 font-mono text-[13px] leading-7 text-[#E8F4EA] outline-none transition-colors focus:border-[#86EFAC]/55 focus:ring-2 focus:ring-[#86EFAC]/10 placeholder:text-[#718678]";
+  "w-full min-h-[250px] resize-y rounded-xl border border-white/10 bg-[#07090E] px-4 py-4 font-mono text-[13px] leading-7 text-[#E8F4EA] outline-none transition-colors focus:border-[#10b981]/55 focus:ring-2 focus:ring-[#10b981]/10 placeholder:text-[#64748b]";
 
 const sampleJSON = `{
   "name": "ToolVerse",
@@ -92,19 +92,19 @@ export default function JSONFormatter() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="flex items-center gap-2 text-lg font-bold sm:text-xl">
-            <Braces size={21} className="text-[#86EFAC]" />
+            <Braces size={21} className="text-[#10b981]" />
             JSON Workspace
           </h2>
           <p className="mt-2 text-sm leading-6 text-[#A5B8AB]">
             Format, validate, and minify JSON directly in your browser.
           </p>
         </div>
-        <span className="rounded-full border border-[#86EFAC]/25 bg-[#86EFAC]/[0.07] px-3 py-1.5 text-xs font-medium text-[#B6F5CB]">
+        <span className="rounded-full border border-[#10b981]/25 bg-[#10b981]/[0.07] px-3 py-1.5 text-xs font-medium text-[#B6F5CB]">
           Client-side processing
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 rounded-xl border border-white/10 bg-[#171F1A] p-1.5">
+      <div className="grid grid-cols-2 gap-2 rounded-xl border border-white/10 bg-[#0D111A] p-1.5">
         {[
           { id: "pretty", label: "Pretty Print" },
           { id: "minify", label: "Minify JSON" },
@@ -116,7 +116,7 @@ export default function JSONFormatter() {
             aria-pressed={mode === item.id}
             className={`rounded-lg px-3 py-3 text-sm font-semibold transition-colors sm:px-4 ${
               mode === item.id
-                ? "bg-[#86EFAC]/15 text-[#B6F5CB]"
+                ? "bg-[#10b981]/15 text-[#B6F5CB]"
                 : "text-[#A5B8AB] hover:bg-white/5 hover:text-white"
             }`}
           >
@@ -128,7 +128,7 @@ export default function JSONFormatter() {
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <label htmlFor="json-input" className="flex items-center gap-2 text-sm font-semibold text-[#DFEDE3]">
-            <FileJson size={17} className="text-[#86EFAC]" />
+            <FileJson size={17} className="text-[#10b981]" />
             Input JSON
           </label>
           <div className="flex items-center gap-2">
@@ -163,7 +163,7 @@ export default function JSONFormatter() {
             {!input.trim() ? (
               <span className="text-xs text-[#94A89B]">Enter JSON to begin.</span>
             ) : isValid ? (
-              <span className="inline-flex items-center gap-2 text-xs font-medium text-[#86EFAC]">
+              <span className="inline-flex items-center gap-2 text-xs font-medium text-[#10b981]">
                 <CheckCircle2 size={15} /> Valid JSON
               </span>
             ) : (
@@ -188,7 +188,7 @@ export default function JSONFormatter() {
         type="button"
         disabled={!isValid}
         onClick={formatJSON}
-        className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-[#86EFAC] px-6 py-4 text-sm font-bold text-[#101210] transition-colors hover:bg-[#A8F5C1] disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-[#10b981] px-6 py-4 text-sm font-bold text-[#07090E] transition-colors hover:bg-[#A8F5C1] disabled:cursor-not-allowed disabled:opacity-40"
       >
         <WandSparkles size={18} />
         {mode === "pretty" ? "Format JSON" : "Minify JSON"}
@@ -198,19 +198,19 @@ export default function JSONFormatter() {
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-[#F0FDF4]">
-              <CheckCircle2 size={18} className="text-[#86EFAC]" />
+              <CheckCircle2 size={18} className="text-[#10b981]" />
               Processed output
             </h3>
             <span className="text-xs text-[#94A89B]">
               {output.length.toLocaleString()} characters
             </span>
           </div>
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#101713]">
+          <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#07090E]">
             <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.025] px-4 py-3">
               <span className="inline-flex items-center gap-2 font-mono text-xs text-[#A5B8AB]">
                 <FileJson size={15} /> output.json
               </span>
-              <span className="text-xs text-[#86EFAC]">
+              <span className="text-xs text-[#10b981]">
                 {mode === "pretty" ? "Formatted" : "Minified"}
               </span>
             </div>
@@ -224,12 +224,12 @@ export default function JSONFormatter() {
               onClick={copyOutput}
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.05] px-5 py-3.5 text-sm font-semibold text-[#F0FDF4] transition-colors hover:bg-white/10"
             >
-              {copied ? <><Check size={17} className="text-[#86EFAC]" /> Copied</> : <><Copy size={17} /> Copy JSON</>}
+              {copied ? <><Check size={17} className="text-[#10b981]" /> Copied</> : <><Copy size={17} /> Copy JSON</>}
             </button>
             <button
               type="button"
               onClick={downloadJSON}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#86EFAC]/30 bg-[#86EFAC]/10 px-5 py-3.5 text-sm font-semibold text-[#B6F5CB] transition-colors hover:bg-[#86EFAC]/15"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#10b981]/30 bg-[#10b981]/10 px-5 py-3.5 text-sm font-semibold text-[#B6F5CB] transition-colors hover:bg-[#10b981]/15"
             >
               <Download size={17} /> Download JSON
             </button>

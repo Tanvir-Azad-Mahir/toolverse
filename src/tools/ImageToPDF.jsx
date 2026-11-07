@@ -69,7 +69,9 @@ export default function ImageToPDF() {
   const imagesRef = useRef([]);
 
   // Keep the latest files available for unmount cleanup.
-  imagesRef.current = images;
+  useEffect(() => {
+    imagesRef.current = images;
+  }, [images]);
 
   useEffect(() => {
     return () => {
@@ -237,7 +239,7 @@ export default function ImageToPDF() {
     <div className="space-y-7">
       <div>
         <h2 className="flex items-center gap-2 text-lg font-bold text-white">
-          <FileImage size={22} className="text-[#86EFAC]" />
+          <FileImage size={22} className="text-[#10b981]" />
           Image to PDF Converter
         </h2>
 
@@ -263,11 +265,11 @@ export default function ImageToPDF() {
         }}
         className={`rounded-2xl border-2 border-dashed p-7 text-center transition sm:p-10 ${
           dragging
-            ? "border-[#86EFAC] bg-[#86EFAC]/10"
-            : "border-white/15 bg-[#171f1a] hover:border-[#86EFAC]/40"
+            ? "border-[#10b981] bg-[#10b981]/10"
+            : "border-white/15 bg-[#0D111A] hover:border-[#10b981]/40"
         }`}
       >
-        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-[#86EFAC]/10 text-[#86EFAC]">
+        <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-[#10b981]/10 text-[#10b981]">
           <UploadCloud size={28} />
         </div>
 
@@ -287,7 +289,7 @@ export default function ImageToPDF() {
           type="button"
           disabled={processing || images.length >= MAX_FILES}
           onClick={() => inputRef.current?.click()}
-          className="mt-5 rounded-xl border border-[#86EFAC]/30 bg-[#86EFAC]/10 px-5 py-2.5 text-sm font-semibold text-[#D1FADE] hover:bg-[#86EFAC]/20 disabled:opacity-40"
+          className="mt-5 rounded-xl border border-[#10b981]/30 bg-[#10b981]/10 px-5 py-2.5 text-sm font-semibold text-[#D1FADE] hover:bg-[#10b981]/20 disabled:opacity-40"
         >
           Choose images
         </button>
@@ -326,7 +328,7 @@ export default function ImageToPDF() {
             {images.map((image, index) => (
               <div
                 key={image.id}
-                className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#171f1a] p-3 sm:gap-4"
+                className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0D111A] p-3 sm:gap-4"
               >
                 <span className="w-5 shrink-0 text-center text-xs text-slate-500">
                   {index + 1}
@@ -387,7 +389,7 @@ export default function ImageToPDF() {
 
       {/* PDF settings */}
       {images.length > 0 && (
-        <div className="space-y-5 rounded-2xl border border-white/10 bg-[#1b2420] p-5 sm:p-6">
+        <div className="space-y-5 rounded-2xl border border-white/10 bg-[#0D111A] p-5 sm:p-6">
           <h3 className="text-sm font-semibold text-white">
             PDF settings
           </h3>
@@ -402,7 +404,7 @@ export default function ImageToPDF() {
                 value={pageSize}
                 onChange={(event) => setPageSize(event.target.value)}
                 disabled={processing}
-                className="w-full rounded-xl border border-white/10 bg-[#171f1a] px-4 py-3 text-sm text-white"
+                className="w-full rounded-xl border border-white/10 bg-[#0D111A] px-4 py-3 text-sm text-white"
               >
                 <option value="a4">A4</option>
                 <option value="letter">US Letter</option>
@@ -418,7 +420,7 @@ export default function ImageToPDF() {
                 value={orientation}
                 onChange={(event) => setOrientation(event.target.value)}
                 disabled={processing}
-                className="w-full rounded-xl border border-white/10 bg-[#171f1a] px-4 py-3 text-sm text-white"
+                className="w-full rounded-xl border border-white/10 bg-[#0D111A] px-4 py-3 text-sm text-white"
               >
                 <option value="portrait">Portrait</option>
                 <option value="landscape">Landscape</option>
@@ -427,7 +429,7 @@ export default function ImageToPDF() {
           </div>
 
           <div className="flex items-center gap-2 rounded-xl bg-white/[0.04] p-3 text-xs text-slate-400">
-            <FileCheck2 size={17} className="text-[#86EFAC]" />
+            <FileCheck2 size={17} className="text-[#10b981]" />
             The PDF will contain {images.length} pages.
           </div>
 
@@ -435,7 +437,7 @@ export default function ImageToPDF() {
             type="button"
             onClick={generatePDF}
             disabled={processing}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#86EFAC] px-6 py-4 text-sm font-bold text-[#101210] transition-colors hover:bg-[#A7F3C0] disabled:opacity-40"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#10b981] px-6 py-4 text-sm font-bold text-[#07090E] transition-colors hover:bg-[#A7F3C0] disabled:opacity-40"
           >
             {processing ? (
               <>
@@ -463,7 +465,7 @@ export default function ImageToPDF() {
       )}
 
       <p className="flex items-start gap-2 text-xs leading-6 text-slate-500">
-        <ShieldCheck size={17} className="mt-0.5 shrink-0 text-[#86EFAC]" />
+        <ShieldCheck size={17} className="mt-0.5 shrink-0 text-[#10b981]" />
         Images are processed locally in your browser. Files are
         converted to JPEG internally to create a smaller PDF;
         transparent areas become white.

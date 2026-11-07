@@ -19,7 +19,7 @@ const MAX_DIMENSION = 10000;
 const MAX_PIXELS = 40_000_000;
 
 const inputClass =
-  "w-full rounded-xl border border-[#33443A] bg-[#171F1A] px-4 py-3.5 text-sm text-white outline-none transition focus:border-[#86EFAC] focus:ring-2 focus:ring-[#86EFAC]/10";
+  "w-full rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#0D111A] px-4 py-3.5 text-sm text-white outline-none transition focus:border-[#10b981] focus:ring-2 focus:ring-[#10b981]/10";
 
 export default function ImageTool({ resize = false }) {
   const [file, setFile] = useState(null);
@@ -313,13 +313,13 @@ export default function ImageTool({ resize = false }) {
           setDragging(false);
           loadFile(event.dataTransfer.files?.[0]);
         }}
-        className={`group flex min-h-[230px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-5 py-9 text-center transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-[#86EFAC] ${
+        className={`group flex min-h-[230px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-5 py-9 text-center transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-[#10b981] ${
           dragging
-            ? "border-[#86EFAC] bg-[#86EFAC]/10"
-            : "border-[#33443A] bg-[#171F1A] hover:border-[#86EFAC]/60 hover:bg-[#86EFAC]/[0.04]"
+            ? "border-[#10b981] bg-[#10b981]/10"
+            : "border-[rgba(255,255,255,0.1)] bg-[#0D111A] hover:border-[#10b981]/60 hover:bg-[#10b981]/[0.04]"
         }`}
       >
-        <div className="mb-5 grid h-16 w-16 place-items-center rounded-2xl border border-[#86EFAC]/20 bg-[#86EFAC]/10 text-[#86EFAC] ">
+        <div className="mb-5 grid h-16 w-16 place-items-center rounded-2xl border border-[#10b981]/20 bg-[#10b981]/10 text-[#10b981] ">
           <UploadCloud size={30} />
         </div>
 
@@ -350,10 +350,10 @@ export default function ImageTool({ resize = false }) {
 
       {/* Original preview */}
       {file && (
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#171F1A]">
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0D111A]">
           <div className="flex items-center justify-between border-b border-white/10 px-5 py-3">
             <div className="flex items-center gap-2 text-sm font-semibold text-slate-200">
-              <ImageIcon size={17} className="text-[#86EFAC]" />
+              <ImageIcon size={17} className="text-[#10b981]" />
               Original image
             </div>
 
@@ -367,7 +367,7 @@ export default function ImageTool({ resize = false }) {
           </div>
 
           <div className="flex flex-col items-center gap-5 p-5 sm:flex-row">
-            <div className="flex h-40 w-full shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#101210] sm:w-48">
+            <div className="flex h-40 w-full shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#07090E] sm:w-48">
               <img
                 src={preview}
                 alt="Original preview"
@@ -398,7 +398,7 @@ export default function ImageTool({ resize = false }) {
 
       {/* Settings */}
       {file && (
-        <div className="space-y-5 rounded-2xl border border-white/10 bg-[#1B2420] p-5 sm:p-6">
+        <div className="space-y-5 rounded-2xl border border-white/10 bg-[#0D111A] p-5 sm:p-6">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-white">
               {resize ? "Image dimensions" : "Compression settings"}
@@ -408,7 +408,7 @@ export default function ImageTool({ resize = false }) {
               <button
                 type="button"
                 onClick={resetDimensions}
-                className="inline-flex items-center gap-2 text-xs font-medium text-[#86EFAC] transition hover:text-[#BBF7D0]"
+                className="inline-flex items-center gap-2 text-xs font-medium text-[#10b981] transition hover:text-[#34d399]"
               >
                 <RefreshCw size={14} />
                 Reset
@@ -459,7 +459,7 @@ export default function ImageTool({ resize = false }) {
                   onChange={(event) =>
                     setKeepRatio(event.target.checked)
                   }
-                  className="h-4 w-4 accent-[#86EFAC]"
+                  className="h-4 w-4 accent-[#10b981]"
                 />
                 Preserve aspect ratio
               </label>
@@ -474,7 +474,7 @@ export default function ImageTool({ resize = false }) {
                   Image quality
                 </label>
 
-                <span className="rounded-lg bg-[#86EFAC]/10 px-3 py-1.5 text-sm font-bold text-[#86EFAC]">
+                <span className="rounded-lg bg-[#10b981]/10 px-3 py-1.5 text-sm font-bold text-[#10b981]">
                   {quality}%
                 </span>
               </div>
@@ -491,7 +491,7 @@ export default function ImageTool({ resize = false }) {
                   setQuality(Number(event.target.value));
                   setResult(null);
                 }}
-                className="w-full accent-[#86EFAC] disabled:opacity-40"
+                className="w-full accent-[#10b981] disabled:opacity-40"
               />
 
               <div className="flex justify-between text-xs text-slate-500">
@@ -513,7 +513,7 @@ export default function ImageTool({ resize = false }) {
             type="button"
             onClick={processImage}
             disabled={processing}
-            className="inline-flex w-full items-center justify-center gap-3 rounded-xl bg-[#86EFAC] px-6 py-4 text-sm font-bold text-[#101210]  transition  hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex w-full items-center justify-center gap-3 rounded-xl bg-[#10b981] px-6 py-4 text-sm font-bold text-[#07090E]  transition  hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {processing ? (
               <>
@@ -543,14 +543,14 @@ export default function ImageTool({ resize = false }) {
 
       {/* Result */}
       {result && file && (
-        <div className="overflow-hidden rounded-2xl border border-emerald-400/20 bg-[#1B2420]">
+        <div className="overflow-hidden rounded-2xl border border-emerald-400/20 bg-[#0D111A]">
           <div className="flex items-center gap-2 border-b border-emerald-400/10 bg-emerald-400/[0.04] px-5 py-4 text-sm font-semibold text-emerald-300">
             <CheckCircle2 size={19} />
             Image processed successfully
           </div>
 
           <div className="space-y-6 p-5 sm:p-7">
-            <div className="flex justify-center rounded-xl bg-[#101210] p-5">
+            <div className="flex justify-center rounded-xl bg-[#07090E] p-5">
               <img
                 src={result.url}
                 alt="Processed result"
@@ -572,7 +572,7 @@ export default function ImageTool({ resize = false }) {
                 <span className="text-xs text-slate-400">
                   Output size
                 </span>
-                <p className="mt-2 text-lg font-bold text-[#86EFAC]">
+                <p className="mt-2 text-lg font-bold text-[#10b981]">
                   {formatBytes(result.size)}
                 </p>
               </div>
@@ -605,7 +605,7 @@ export default function ImageTool({ resize = false }) {
                   }`
                 )
               }
-              className="flex w-full items-center justify-center gap-3 rounded-xl bg-[#86EFAC] px-6 py-4 text-sm font-bold text-[#101210] transition hover:brightness-110"
+              className="flex w-full items-center justify-center gap-3 rounded-xl bg-[#10b981] px-6 py-4 text-sm font-bold text-[#07090E] transition hover:brightness-110"
             >
               <Download size={19} />
               Download image

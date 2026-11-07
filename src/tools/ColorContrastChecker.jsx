@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Contrast } from "lucide-react";
 
 const surface =
-  "rounded-xl border border-[#33443A] bg-[#171F1A] px-4 py-3 text-sm text-[#E3EEE6]";
+  "rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#0D111A] px-4 py-3 text-sm text-[#E3EEE6]";
 
 function luminance(hex) {
   const channels = [1, 3, 5].map((index) =>
@@ -19,7 +19,7 @@ function luminance(hex) {
 
 export default function ColorContrastChecker() {
   const [fg, setFg] = useState("#F0FDF4");
-  const [bg, setBg] = useState("#101210");
+  const [bg, setBg] = useState("#07090E");
   const foregroundLuminance = luminance(fg);
   const backgroundLuminance = luminance(bg);
   const ratio =
@@ -37,7 +37,7 @@ export default function ColorContrastChecker() {
     <div className="space-y-6">
       <div>
         <h2 className="flex items-center gap-2 text-lg font-bold text-[#F0FDF4] sm:text-xl">
-          <Contrast size={22} className="text-[#86EFAC]" />
+          <Contrast size={22} className="text-[#10b981]" />
           Color Contrast Checker
         </h2>
         <p className="mt-2 text-sm leading-6 text-[#A5B8AB]">
@@ -52,7 +52,7 @@ export default function ColorContrastChecker() {
         ].map(({ label, value, onChange, id }) => (
           <label key={id} htmlFor={id} className="text-sm font-medium text-[#DCE9DF]">
             {label}
-            <div className="mt-2 flex min-h-14 items-center gap-3 rounded-xl border border-[#33443A] bg-[#171F1A] px-3 py-2">
+            <div className="mt-2 flex min-h-14 items-center gap-3 rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#0D111A] px-3 py-2">
               <input
                 id={id}
                 type="color"
@@ -67,7 +67,7 @@ export default function ColorContrastChecker() {
       </div>
 
       <div
-        className="rounded-2xl border border-[#33443A] p-6 sm:p-8"
+        className="rounded-2xl border border-[rgba(255,255,255,0.1)] p-6 sm:p-8"
         style={{ color: fg, backgroundColor: bg }}
       >
         <h3 className="text-2xl font-bold sm:text-3xl">Sample heading</h3>
@@ -97,7 +97,7 @@ export default function ColorContrastChecker() {
               <span
                 className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                   passes
-                    ? "bg-[#86EFAC]/10 text-[#86EFAC]"
+                    ? "bg-[#10b981]/10 text-[#10b981]"
                     : "bg-red-400/10 text-red-300"
                 }`}
               >

@@ -70,10 +70,10 @@ export default function Base64Converter() {
     <div className="space-y-7">
       <div>
         <h2 className="flex items-center gap-2 text-lg font-bold text-[#F0FDF4]">
-          <Binary size={23} className="text-[#86EFAC]" />
+          <Binary size={23} className="text-[#10b981]" />
           Base64 Converter
         </h2>
-        <p className="mt-2 text-sm text-[#94A3A0]">
+        <p className="mt-2 text-sm text-[#94a3b8]">
           Encode and decode Base64 text with UTF-8 support.
         </p>
       </div>
@@ -90,8 +90,8 @@ export default function Base64Converter() {
             aria-pressed={mode === option.id}
             className={`rounded-lg px-4 py-3 text-sm font-semibold transition-colors ${
               mode === option.id
-                ? "bg-[#86EFAC]/15 text-[#BBF7D0]"
-                : "text-[#94A3A0] hover:bg-white/5 hover:text-[#F0FDF4]"
+                ? "bg-[#10b981]/15 text-[#34d399]"
+                : "text-[#94a3b8] hover:bg-white/5 hover:text-[#F0FDF4]"
             }`}
           >
             {option.label}
@@ -113,7 +113,7 @@ export default function Base64Converter() {
           }}
           placeholder={mode === "encode" ? "Type or paste text here..." : "Paste Base64 encoded text..."}
           spellCheck={false}
-          className="w-full resize-y rounded-xl border border-white/10 bg-[#101712] p-4 font-mono text-sm leading-7 text-[#F0FDF4] outline-none transition-colors placeholder:text-[#64756A] focus:border-[#86EFAC]/50 focus:ring-0"
+          className="w-full resize-y rounded-xl border border-white/10 bg-[#101712] p-4 font-mono text-sm leading-7 text-[#F0FDF4] outline-none transition-colors placeholder:text-[#64756A] focus:border-[#10b981]/50 focus:ring-0"
         />
       </div>
 
@@ -122,7 +122,7 @@ export default function Base64Converter() {
           type="button"
           onClick={swap}
           disabled={!input || !!error}
-          className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-xs font-semibold text-[#CDD9CE] transition-colors hover:border-[#86EFAC]/30 hover:text-[#86EFAC] disabled:opacity-40"
+          className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-xs font-semibold text-[#CDD9CE] transition-colors hover:border-[#10b981]/30 hover:text-[#10b981] disabled:opacity-40"
         >
           <ArrowRightLeft size={16} />
           Swap input and output
@@ -139,7 +139,7 @@ export default function Base64Converter() {
           readOnly
           rows={7}
           placeholder="Your output will appear here..."
-          className="w-full resize-y rounded-xl border border-[#86EFAC]/15 bg-[#16201A] p-4 font-mono text-sm leading-7 text-[#DCFCE7] outline-none placeholder:text-[#64756A]"
+          className="w-full resize-y rounded-xl border border-[#10b981]/15 bg-[#16201A] p-4 font-mono text-sm leading-7 text-[#DCFCE7] outline-none placeholder:text-[#64756A]"
         />
       </div>
 
@@ -155,7 +155,7 @@ export default function Base64Converter() {
           type="button"
           onClick={copyResult}
           disabled={!output}
-          className="flex items-center justify-center gap-2 rounded-xl bg-[#86EFAC] px-5 py-3.5 text-sm font-bold text-[#101210] transition-colors hover:bg-[#BBF7D0] disabled:opacity-40"
+          className="flex items-center justify-center gap-2 rounded-xl bg-[#10b981] px-5 py-3.5 text-sm font-bold text-[#07090E] transition-colors hover:bg-[#34d399] disabled:opacity-40"
         >
           {copied ? <Check size={17} /> : <Copy size={17} />}
           {copied ? "Copied" : "Copy output"}
@@ -174,7 +174,7 @@ export default function Base64Converter() {
         </button>
       </div>
 
-      <p className="text-center text-xs leading-6 text-[#94A3A0]">
+      <p className="text-center text-xs leading-6 text-[#94a3b8]">
         All conversions happen in your browser.
         Base64 is an encoding format, not encryption.
       </p>

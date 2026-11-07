@@ -50,7 +50,7 @@ const modes = [
 ];
 
 const inputClass =
-  "w-full rounded-xl border border-white/10 bg-[#171F1A] px-4 py-3.5 text-base font-medium text-white outline-none transition placeholder:text-slate-600 focus:border-[#86EFAC]/60 focus:ring-2 focus:ring-[#86EFAC]/10";
+  "w-full rounded-xl border border-white/10 bg-[#0D111A] px-4 py-3.5 text-base font-medium text-white outline-none transition placeholder:text-slate-600 focus:border-[#10b981]/60 focus:ring-2 focus:ring-[#10b981]/10";
 
 function parseNumber(value) {
   if (String(value).trim() === "") return null;
@@ -147,7 +147,7 @@ export default function PercentageCalculator() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="flex items-center gap-2.5 text-lg font-bold text-white sm:text-xl">
-            <Calculator size={22} className="text-[#86EFAC]" />
+            <Calculator size={22} className="text-[#10b981]" />
             Percentage Workspace
           </h2>
           <p className="mt-2 text-sm leading-6 text-slate-400">
@@ -155,7 +155,7 @@ export default function PercentageCalculator() {
           </p>
         </div>
 
-        <span className="rounded-full border border-[#86EFAC]/20 bg-[#86EFAC]/10 px-3 py-1.5 text-xs font-medium text-[#BBF7D0]">
+        <span className="rounded-full border border-[#10b981]/20 bg-[#10b981]/10 px-3 py-1.5 text-xs font-medium text-[#34d399]">
           Instant results
         </span>
       </div>
@@ -174,14 +174,14 @@ export default function PercentageCalculator() {
               onClick={() => setMode(item.id)}
               className={`flex min-h-[110px] flex-col items-start justify-between gap-3 rounded-2xl border p-4 text-left transition duration-200 ${
                 selected
-                  ? "border-[#86EFAC]/50 bg-[#86EFAC]/10 "
-                  : "border-white/10 bg-[#171F1A] hover:border-white/25 hover:bg-white/[0.04]"
+                  ? "border-[#10b981]/50 bg-[#10b981]/10 "
+                  : "border-white/10 bg-[#0D111A] hover:border-white/25 hover:bg-white/[0.04]"
               }`}
             >
               <Icon
                 size={21}
                 className={
-                  selected ? "text-[#86EFAC]" : "text-slate-400"
+                  selected ? "text-[#10b981]" : "text-slate-400"
                 }
               />
 
@@ -198,7 +198,7 @@ export default function PercentageCalculator() {
       </div>
 
       {/* Calculator panel */}
-      <div className="space-y-6 rounded-2xl border border-white/10 bg-[#1B2420] p-5 sm:p-7">
+      <div className="space-y-6 rounded-2xl border border-white/10 bg-[#0D111A] p-5 sm:p-7">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 className="text-base font-semibold text-white">
@@ -239,7 +239,7 @@ export default function PercentageCalculator() {
             onClick={swapValues}
             aria-label="Swap entered values"
             title="Swap values"
-            className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-400 transition hover:border-[#86EFAC]/30 hover:text-[#86EFAC]"
+            className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-400 transition hover:border-[#10b981]/30 hover:text-[#10b981]"
           >
             <ArrowRightLeft size={18} />
           </button>
@@ -271,10 +271,10 @@ export default function PercentageCalculator() {
       </div>
 
       {/* Result panel */}
-      <div className="relative overflow-hidden rounded-2xl border border-[#86EFAC]/20 bg-gradient-to-br from-[#203329] via-[#1B2820] to-[#151C17] p-6 sm:p-8">
+      <div className="relative overflow-hidden rounded-2xl border border-[#10b981]/20 bg-gradient-to-br from-[#203329] via-[#1B2820] to-[#151C17] p-6 sm:p-8">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-[#86EFAC]/10 blur-3xl"
+          className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-[#10b981]/10 blur-3xl"
         />
 
         <div className="relative">
@@ -333,7 +333,7 @@ export default function PercentageCalculator() {
           {mode === "of" && validResult && (
             <p className="mt-4 text-sm text-slate-400">
               {formatNumber(x)}% of {formatNumber(y)} ={" "}
-              <span className="font-semibold text-[#BBF7D0]">
+              <span className="font-semibold text-[#34d399]">
                 {formatNumber(result)}
               </span>
             </p>
@@ -342,7 +342,7 @@ export default function PercentageCalculator() {
           {mode === "what" && validResult && (
             <p className="mt-4 text-sm text-slate-400">
               {formatNumber(x)} is{" "}
-              <span className="font-semibold text-[#BBF7D0]">
+              <span className="font-semibold text-[#34d399]">
                 {formatNumber(result, "%")}
               </span>{" "}
               of {formatNumber(y)}.
@@ -355,7 +355,7 @@ export default function PercentageCalculator() {
       <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.025] p-4">
         <Info
           size={18}
-          className="mt-0.5 shrink-0 text-[#86EFAC]"
+          className="mt-0.5 shrink-0 text-[#10b981]"
         />
         <p className="text-xs leading-6 text-slate-400">
           Results update automatically as you type.

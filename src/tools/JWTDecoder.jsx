@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Check, Copy, ShieldAlert } from "lucide-react";
 
 const editorClass =
-  "w-full rounded-xl border border-[#304038] bg-[#101210] px-4 py-3 font-mono text-sm leading-6 text-[#F0FDF4] outline-none transition placeholder:text-[#718478] focus:border-[#86EFAC]/60 focus-visible:ring-2 focus-visible:ring-[#86EFAC]/15";
+  "w-full rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#07090E] px-4 py-3 font-mono text-sm leading-6 text-[#F0FDF4] outline-none transition placeholder:text-[#718478] focus:border-[#10b981]/60 focus-visible:ring-2 focus-visible:ring-[#10b981]/15";
 
 function CopyButton({ text }) {
   const [copied, setCopied] = useState(false);
@@ -23,7 +23,7 @@ function CopyButton({ text }) {
       type="button"
       disabled={!text}
       onClick={copy}
-      className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#304038] bg-[#1B2420] px-4 py-2.5 text-sm font-semibold text-[#D5EBDD] transition hover:border-[#86EFAC]/40 hover:bg-[#25352B] disabled:cursor-not-allowed disabled:opacity-40"
+      className="inline-flex items-center justify-center gap-2 rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#0D111A] px-4 py-2.5 text-sm font-semibold text-[#D5EBDD] transition hover:border-[#10b981]/40 hover:bg-[#25352B] disabled:cursor-not-allowed disabled:opacity-40"
     >
       {copied ? <Check size={16} /> : <Copy size={16} />}
       {copied ? "Copied" : "Copy"}
@@ -57,7 +57,7 @@ export default function JWTDecoder() {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold text-[#F0FDF4]">JWT Decoder</h2>
-        <p className="mt-2 text-sm leading-6 text-[#94A3A0]">
+        <p className="mt-2 text-sm leading-6 text-[#94a3b8]">
           Inspect a JWT header and payload locally in your browser.
         </p>
       </div>
@@ -90,7 +90,7 @@ export default function JWTDecoder() {
 
       {data.payload && (
         <div className="space-y-5">
-          <p className="rounded-xl border border-[#304038] bg-[#1B2420] p-4 text-sm text-[#B9CCC0]">
+          <p className="rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#0D111A] p-4 text-sm text-[#B9CCC0]">
             <span className="font-semibold text-[#F0FDF4]">Expiration: </span>
             {typeof data.payload.exp === "number"
               ? new Date(data.payload.exp * 1000).toLocaleString()
@@ -105,7 +105,7 @@ export default function JWTDecoder() {
             return (
               <div key={label} className="space-y-3">
                 <h3 className="text-sm font-semibold text-[#F0FDF4]">{label}</h3>
-                <pre className="max-h-80 overflow-auto rounded-xl border border-[#304038] bg-[#101210] p-4 font-mono text-sm leading-6 text-[#D5EBDD]">
+                <pre className="max-h-80 overflow-auto rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#07090E] p-4 font-mono text-sm leading-6 text-[#D5EBDD]">
                   {formatted}
                 </pre>
                 <CopyButton text={formatted} />

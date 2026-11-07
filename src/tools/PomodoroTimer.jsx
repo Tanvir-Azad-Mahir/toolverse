@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 
 const inputClass =
-  "mt-2 w-full rounded-xl border border-[#304038] bg-[#101210] px-4 py-3 font-mono text-sm text-[#F0FDF4] outline-none transition focus:border-[#86EFAC] focus-visible:ring-2 focus-visible:ring-[#86EFAC]/20";
+  "mt-2 w-full rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#07090E] px-4 py-3 font-mono text-sm text-[#F0FDF4] outline-none transition focus:border-[#10b981] focus-visible:ring-2 focus-visible:ring-[#10b981]/20";
 const primaryButton =
-  "rounded-xl bg-[#86EFAC] px-5 py-3 text-sm font-semibold text-[#101210] transition hover:bg-[#A7F3C2] disabled:opacity-40";
+  "rounded-xl bg-[#10b981] px-5 py-3 text-sm font-semibold text-[#07090E] transition hover:bg-[#A7F3C2] disabled:opacity-40";
 const secondaryButton =
-  "rounded-xl border border-[#304038] bg-[#1B2420] px-4 py-3 text-sm font-semibold text-[#D5EBDD] transition hover:border-[#86EFAC]/40 hover:bg-[#24342B]";
+  "rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#0D111A] px-4 py-3 text-sm font-semibold text-[#D5EBDD] transition hover:border-[#10b981]/40 hover:bg-[#24342B]";
 
 export default function PomodoroTimer() {
   const [work, setWork] = useState(25);
@@ -19,19 +19,19 @@ export default function PomodoroTimer() {
     if (!running) return;
     deadline.current = Date.now() + remaining * 1000;
     const tick = () => {
-      setRemaining(Math.max(0, Math.ceil((deadline.current - Date.now()) / 1000)));
+      const left = Math.max(0, Math.ceil((deadline.current - Date.now()) / 1000));
+      if (left === 0) {
+        setRunning(false);
+        const next = phase === "Work" ? "Break" : "Work";
+        setPhase(next);
+        setRemaining((next === "Work" ? work : rest) * 60);
+      } else {
+        setRemaining(left);
+      }
     };
     const id = setInterval(tick, 250);
     return () => clearInterval(id);
-  }, [running]);
-
-  useEffect(() => {
-    if (remaining !== 0 || !running) return;
-    setRunning(false);
-    const next = phase === "Work" ? "Break" : "Work";
-    setPhase(next);
-    setRemaining((next === "Work" ? work : rest) * 60);
-  }, [remaining, running, phase, work, rest]);
+  }, [running, remaining, phase, work, rest]);
 
   function reset() {
     setRunning(false);
@@ -50,13 +50,13 @@ export default function PomodoroTimer() {
     <div className="space-y-6 text-center text-[#F0FDF4]">
       <div>
         <h2 className="text-xl font-bold">Pomodoro Timer</h2>
-        <p className="mt-2 text-sm text-[#94A3A0]">
+        <p className="mt-2 text-sm text-[#94a3b8]">
           Alternate focused work with short breaks.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-[#304038] bg-[#1B2420] px-5 py-8 sm:px-8">
-        <p className="mb-4 text-sm font-semibold text-[#86EFAC]">{phase} session</p>
+      <div className="rounded-2xl border border-[rgba(255,255,255,0.1)] bg-[#0D111A] px-5 py-8 sm:px-8">
+        <p className="mb-4 text-sm font-semibold text-[#10b981]">{phase} session</p>
         <div role="timer" className="font-mono text-5xl font-bold tracking-tight tabular-nums sm:text-6xl">
           {String(Math.floor(remaining / 60)).padStart(2, "0")}:
           {String(remaining % 60).padStart(2, "0")}

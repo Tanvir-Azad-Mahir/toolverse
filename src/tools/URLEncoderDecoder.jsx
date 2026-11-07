@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Copy, Check, Link2, AlertCircle } from "lucide-react";
 
 const inputClass =
-  "w-full min-h-40 resize-y rounded-xl border border-[#304038] bg-[#101210] px-4 py-3 font-mono text-sm leading-7 text-[#F0FDF4] outline-none transition placeholder:text-[#718579] focus:border-[#86EFAC]/60 focus-visible:ring-2 focus-visible:ring-[#86EFAC]/15";
+  "w-full min-h-40 resize-y rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#07090E] px-4 py-3 font-mono text-sm leading-7 text-[#F0FDF4] outline-none transition placeholder:text-[#718579] focus:border-[#10b981]/60 focus-visible:ring-2 focus-visible:ring-[#10b981]/15";
 
 export default function URLEncoderDecoder() {
   const [value, setValue] = useState("hello world & more");
@@ -34,15 +34,15 @@ export default function URLEncoderDecoder() {
     <div className="space-y-6">
       <div>
         <h2 className="flex items-center gap-2 text-lg font-bold text-[#F0FDF4] sm:text-xl">
-          <Link2 size={21} className="text-[#86EFAC]" />
+          <Link2 size={21} className="text-[#10b981]" />
           URL Encoder / Decoder
         </h2>
-        <p className="mt-2 text-sm leading-6 text-[#94A3A0]">
+        <p className="mt-2 text-sm leading-6 text-[#94a3b8]">
           Encode or decode URL components locally in your browser.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 rounded-xl border border-[#304038] bg-[#1B2420] p-1.5">
+      <div className="grid grid-cols-2 gap-2 rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#0D111A] p-1.5">
         {["encode", "decode"].map((option) => (
           <button
             key={option}
@@ -52,10 +52,10 @@ export default function URLEncoderDecoder() {
               setMode(option);
               setCopied(false);
             }}
-            className={`rounded-lg px-4 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#86EFAC] ${
+            className={`rounded-lg px-4 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#10b981] ${
               mode === option
-                ? "bg-[#86EFAC]/15 text-[#86EFAC]"
-                : "text-[#94A3A0] hover:bg-white/5 hover:text-[#F0FDF4]"
+                ? "bg-[#10b981]/15 text-[#10b981]"
+                : "text-[#94a3b8] hover:bg-white/5 hover:text-[#F0FDF4]"
             }`}
           >
             {option === "encode" ? "Encode" : "Decode"}
@@ -94,7 +94,7 @@ export default function URLEncoderDecoder() {
         <pre
           id="url-codec-output"
           aria-live="polite"
-          className="min-h-28 overflow-auto whitespace-pre-wrap break-all rounded-xl border border-[#365243] bg-[#171F1A] p-4 font-mono text-sm leading-7 text-[#D5EBDD]"
+          className="min-h-28 overflow-auto whitespace-pre-wrap break-all rounded-xl border border-[#365243] bg-[#0D111A] p-4 font-mono text-sm leading-7 text-[#D5EBDD]"
         >
           {result.text}
         </pre>
@@ -104,7 +104,7 @@ export default function URLEncoderDecoder() {
         type="button"
         onClick={copyResult}
         disabled={!result.text}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#86EFAC] px-5 py-3 text-sm font-bold text-[#101C14] transition hover:bg-[#A7F3C0] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#10b981] px-5 py-3 text-sm font-bold text-[#101C14] transition hover:bg-[#A7F3C0] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
       >
         {copied ? <Check size={17} /> : <Copy size={17} />}
         {copied ? "Copied" : "Copy output"}

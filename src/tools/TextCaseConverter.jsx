@@ -43,7 +43,7 @@ function convertCase(text, mode) {
 }
 
 const editorStyle =
-  "w-full min-h-[230px] resize-y rounded-xl border border-[#304038] bg-[#101210] px-4 py-4 text-sm leading-7 text-[#F0FDF4] outline-none transition placeholder:text-[#718478] focus:border-[#86EFAC]/60 focus:ring-2 focus:ring-[#86EFAC]/10";
+  "w-full min-h-[230px] resize-y rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#07090E] px-4 py-4 text-sm leading-7 text-[#F0FDF4] outline-none transition placeholder:text-[#718478] focus:border-[#10b981]/60 focus:ring-2 focus:ring-[#10b981]/10";
 
 export default function TextCaseConverter() {
   const [text, setText] = useState("");
@@ -97,14 +97,14 @@ export default function TextCaseConverter() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="flex items-center gap-2 text-lg font-bold text-[#F0FDF4] sm:text-xl">
-            <CaseSensitive size={23} className="text-[#86EFAC]" />
+            <CaseSensitive size={23} className="text-[#10b981]" />
             Text Transformation Studio
           </h2>
-          <p className="mt-2 text-sm leading-6 text-[#94A3A0]">
+          <p className="mt-2 text-sm leading-6 text-[#94a3b8]">
             Convert text capitalization instantly with live preview.
           </p>
         </div>
-        <span className="rounded-full border border-[#86EFAC]/20 bg-[#86EFAC]/10 px-3 py-1.5 text-xs font-medium text-[#86EFAC]">
+        <span className="rounded-full border border-[#10b981]/20 bg-[#10b981]/10 px-3 py-1.5 text-xs font-medium text-[#10b981]">
           Live conversion
         </span>
       </div>
@@ -121,10 +121,10 @@ export default function TextCaseConverter() {
                 type="button"
                 aria-pressed={selected}
                 onClick={() => selectMode(item.id)}
-                className={`flex min-h-[96px] flex-col items-start justify-between gap-3 rounded-xl border p-4 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#86EFAC] ${
+                className={`flex min-h-[96px] flex-col items-start justify-between gap-3 rounded-xl border p-4 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#10b981] ${
                   selected
-                    ? "border-[#86EFAC]/50 bg-[#86EFAC]/10 text-[#86EFAC]"
-                    : "border-[#304038] bg-[#1B2420] text-[#94A3A0] hover:border-[#86EFAC]/25 hover:text-[#F0FDF4]"
+                    ? "border-[#10b981]/50 bg-[#10b981]/10 text-[#10b981]"
+                    : "border-[rgba(255,255,255,0.1)] bg-[#0D111A] text-[#94a3b8] hover:border-[#10b981]/25 hover:text-[#F0FDF4]"
                 }`}
               >
                 <Icon size={20} />
@@ -139,10 +139,10 @@ export default function TextCaseConverter() {
         <div className="min-w-0 space-y-3">
           <div className="flex items-center justify-between gap-3">
             <label htmlFor="case-source" className="flex items-center gap-2 text-sm font-semibold text-[#F0FDF4]">
-              <FileText size={17} className="text-[#86EFAC]" />
+              <FileText size={17} className="text-[#10b981]" />
               Original text
             </label>
-            <span className="text-xs text-[#94A3A0]">{text.length.toLocaleString()} chars</span>
+            <span className="text-xs text-[#94a3b8]">{text.length.toLocaleString()} chars</span>
           </div>
           <textarea
             id="case-source"
@@ -153,7 +153,7 @@ export default function TextCaseConverter() {
             spellCheck={false}
             className={editorStyle}
           />
-          <div className="flex flex-wrap gap-3 text-xs text-[#94A3A0]">
+          <div className="flex flex-wrap gap-3 text-xs text-[#94a3b8]">
             <span>{wordCount.toLocaleString()} words</span>
             <span>•</span>
             <span>{text.length.toLocaleString()} characters</span>
@@ -163,10 +163,10 @@ export default function TextCaseConverter() {
         <div className="min-w-0 space-y-3">
           <div className="flex items-center justify-between gap-3">
             <label htmlFor="case-result" className="flex items-center gap-2 text-sm font-semibold text-[#F0FDF4]">
-              <CaseSensitive size={17} className="text-[#86EFAC]" />
+              <CaseSensitive size={17} className="text-[#10b981]" />
               Converted text
             </label>
-            <span className="text-xs text-[#94A3A0]">{output.length.toLocaleString()} chars</span>
+            <span className="text-xs text-[#94a3b8]">{output.length.toLocaleString()} chars</span>
           </div>
           <textarea
             id="case-result"
@@ -175,9 +175,9 @@ export default function TextCaseConverter() {
             readOnly
             placeholder="Your converted text will appear here..."
             spellCheck={false}
-            className={`${editorStyle} border-[#86EFAC]/20 bg-[#18201C]`}
+            className={`${editorStyle} border-[#10b981]/20 bg-[#18201C]`}
           />
-          <div className="flex items-center gap-2 text-xs text-[#86EFAC]/80">
+          <div className="flex items-center gap-2 text-xs text-[#10b981]/80">
             <Check size={14} />
             Updated automatically
           </div>
@@ -189,7 +189,7 @@ export default function TextCaseConverter() {
           type="button"
           onClick={copyResult}
           disabled={!output}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#86EFAC] px-5 py-3.5 text-sm font-bold text-[#101210] transition hover:bg-[#A7F3C4] disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#10b981] px-5 py-3.5 text-sm font-bold text-[#07090E] transition hover:bg-[#A7F3C4] disabled:cursor-not-allowed disabled:opacity-40"
         >
           {copied ? <><Check size={17} />Copied</> : <><Copy size={17} />Copy result</>}
         </button>
@@ -197,7 +197,7 @@ export default function TextCaseConverter() {
           type="button"
           onClick={downloadResult}
           disabled={!output}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#86EFAC]/25 bg-[#86EFAC]/10 px-5 py-3.5 text-sm font-semibold text-[#86EFAC] transition hover:bg-[#86EFAC]/15 disabled:opacity-40"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#10b981]/25 bg-[#10b981]/10 px-5 py-3.5 text-sm font-semibold text-[#10b981] transition hover:bg-[#10b981]/15 disabled:opacity-40"
         >
           <Download size={17} />
           Download TXT
@@ -206,7 +206,7 @@ export default function TextCaseConverter() {
           type="button"
           onClick={clearAll}
           disabled={!text}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#304038] bg-[#1B2420] px-5 py-3.5 text-sm font-semibold text-[#D5EBDD] transition hover:bg-[#243128] disabled:opacity-40"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#0D111A] px-5 py-3.5 text-sm font-semibold text-[#D5EBDD] transition hover:bg-[#243128] disabled:opacity-40"
         >
           <RotateCcw size={17} />
           Clear
@@ -219,7 +219,7 @@ export default function TextCaseConverter() {
           {error}
         </div>
       )}
-      <p className="text-center text-xs leading-6 text-[#94A3A0]">
+      <p className="text-center text-xs leading-6 text-[#94a3b8]">
         Text conversion happens entirely in your browser. Your text is not uploaded or stored on a server.
       </p>
     </div>

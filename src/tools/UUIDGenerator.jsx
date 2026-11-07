@@ -64,16 +64,16 @@ export default function UUIDGenerator() {
     <div className="space-y-7">
       <div>
         <h2 className="flex items-center gap-2 text-lg font-bold text-[#F0FDF4]">
-          <Fingerprint size={22} className="text-[#86EFAC]" />
+          <Fingerprint size={22} className="text-[#10b981]" />
           UUID Generator
         </h2>
 
-        <p className="mt-2 text-sm text-[#94A3A0]">
+        <p className="mt-2 text-sm text-[#94a3b8]">
           Generate random UUID version 4 identifiers instantly.
         </p>
       </div>
 
-      <div className="space-y-5 rounded-2xl border border-[#304038] bg-[#1B2420] p-5 sm:p-6">
+      <div className="space-y-5 rounded-2xl border border-[rgba(255,255,255,0.1)] bg-[#0D111A] p-5 sm:p-6">
         <label className="block space-y-2">
           <span className="text-sm font-medium text-[#C6D6CC]">
             Number of UUIDs
@@ -86,7 +86,7 @@ export default function UUIDGenerator() {
               setUuids([]);
               setCopied(false);
             }}
-            className="w-full rounded-xl border border-[#304038] bg-[#101210] px-4 py-3 text-sm text-[#F0FDF4] outline-none transition focus:border-[#86EFAC]/60 focus:ring-2 focus:ring-[#86EFAC]/10"
+            className="w-full rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#07090E] px-4 py-3 text-sm text-[#F0FDF4] outline-none transition focus:border-[#10b981]/60 focus:ring-2 focus:ring-[#10b981]/10"
           >
             {[1, 5, 10, 25, 50, 100].map((value) => (
               <option key={value} value={value}>
@@ -99,7 +99,7 @@ export default function UUIDGenerator() {
         <button
           type="button"
           onClick={generate}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#86EFAC] px-5 py-3.5 text-sm font-bold text-[#101210] transition hover:bg-[#A7F3C3]"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#10b981] px-5 py-3.5 text-sm font-bold text-[#07090E] transition hover:bg-[#A7F3C3]"
         >
           <RefreshCw size={17} />
           Generate UUIDs
@@ -107,23 +107,23 @@ export default function UUIDGenerator() {
       </div>
 
       {uuids.length > 0 && (
-        <div className="space-y-4 rounded-2xl border border-[#86EFAC]/20 bg-[#1B2420] p-5 sm:p-6">
+        <div className="space-y-4 rounded-2xl border border-[#10b981]/20 bg-[#0D111A] p-5 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-sm font-semibold text-[#F0FDF4]">
               Generated identifiers
             </h3>
-            <span className="text-xs text-[#94A3A0]">
+            <span className="text-xs text-[#94a3b8]">
               {uuids.length} UUIDs
             </span>
           </div>
 
-          <div className="max-h-[350px] space-y-2 overflow-auto rounded-xl border border-[#304038] bg-[#101210] p-3">
+          <div className="max-h-[350px] space-y-2 overflow-auto rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#07090E] p-3">
             {uuids.map((uuid, index) => (
               <div
                 key={`${index}-${uuid}`}
-                className="flex items-start gap-3 rounded-lg border border-[#304038]/70 p-3"
+                className="flex items-start gap-3 rounded-lg border border-[rgba(255,255,255,0.1)]/70 p-3"
               >
-                <span className="text-xs text-[#94A3A0]">
+                <span className="text-xs text-[#94a3b8]">
                   {index + 1}.
                 </span>
                 <code className="break-all text-xs leading-6 text-[#C1F7D1] sm:text-sm">
@@ -137,7 +137,7 @@ export default function UUIDGenerator() {
             <button
               type="button"
               onClick={copyAll}
-              className="flex items-center justify-center gap-2 rounded-xl bg-[#86EFAC] px-5 py-3 text-sm font-bold text-[#101210] transition hover:bg-[#A7F3C3]"
+              className="flex items-center justify-center gap-2 rounded-xl bg-[#10b981] px-5 py-3 text-sm font-bold text-[#07090E] transition hover:bg-[#A7F3C3]"
             >
               {copied ? <Check size={17} /> : <Copy size={17} />}
               {copied ? "Copied" : "Copy all"}
@@ -146,7 +146,7 @@ export default function UUIDGenerator() {
             <button
               type="button"
               onClick={download}
-              className="flex items-center justify-center gap-2 rounded-xl border border-[#86EFAC]/25 bg-[#86EFAC]/10 px-5 py-3 text-sm font-semibold text-[#86EFAC] transition hover:bg-[#86EFAC]/15"
+              className="flex items-center justify-center gap-2 rounded-xl border border-[#10b981]/25 bg-[#10b981]/10 px-5 py-3 text-sm font-semibold text-[#10b981] transition hover:bg-[#10b981]/15"
             >
               <Download size={17} />
               Download TXT
@@ -161,8 +161,8 @@ export default function UUIDGenerator() {
         </p>
       )}
 
-      <p className="flex items-start gap-2 text-xs leading-6 text-[#94A3A0]">
-        <ShieldCheck size={17} className="mt-0.5 shrink-0 text-[#86EFAC]" />
+      <p className="flex items-start gap-2 text-xs leading-6 text-[#94a3b8]">
+        <ShieldCheck size={17} className="mt-0.5 shrink-0 text-[#10b981]" />
         UUIDs are generated locally using crypto.randomUUID().
         They are suitable as identifiers, not as passwords or secrets.
       </p>

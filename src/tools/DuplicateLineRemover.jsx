@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Check, Copy, ListFilter } from "lucide-react";
 
 const editorClass =
-  "min-h-56 w-full resize-y rounded-xl border border-white/10 bg-[#101712] px-4 py-3 font-mono text-sm leading-7 text-[#F0FDF4] outline-none transition-colors focus:border-[#86EFAC]/60 focus:ring-0 placeholder:text-[#768B7D]";
+  "min-h-56 w-full resize-y rounded-xl border border-white/10 bg-[#101712] px-4 py-3 font-mono text-sm leading-7 text-[#F0FDF4] outline-none transition-colors focus:border-[#10b981]/60 focus:ring-0 placeholder:text-[#768B7D]";
 
 export default function DuplicateLineRemover() {
   const [value, setValue] = useState("apple\nbanana\napple\ncherry\nbanana");
@@ -45,7 +45,7 @@ export default function DuplicateLineRemover() {
     <div className="space-y-6">
       <div>
         <h2 className="flex items-center gap-2 text-lg font-bold text-[#F0FDF4] sm:text-xl">
-          <ListFilter size={21} className="text-[#86EFAC]" />
+          <ListFilter size={21} className="text-[#10b981]" />
           Duplicate Line Remover
         </h2>
         <p className="mt-2 text-sm leading-6 text-[#A5B8AB]">
@@ -53,7 +53,7 @@ export default function DuplicateLineRemover() {
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-x-6 gap-y-3 rounded-xl border border-white/10 bg-[#1B2420] p-4 text-sm text-[#D5EBDD]">
+      <div className="flex flex-wrap gap-x-6 gap-y-3 rounded-xl border border-white/10 bg-[#0D111A] p-4 text-sm text-[#D5EBDD]">
         {[
           ["Trim whitespace", trim, setTrim],
           ["Case sensitive", caseSensitive, setCaseSensitive],
@@ -67,7 +67,7 @@ export default function DuplicateLineRemover() {
                 setChecked(event.target.checked);
                 setCopied(false);
               }}
-              className="h-4 w-4 accent-[#86EFAC]"
+              className="h-4 w-4 accent-[#10b981]"
             />
             {label}
           </label>
@@ -105,13 +105,13 @@ export default function DuplicateLineRemover() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-[#A5B8AB]" aria-live="polite">
-          <span className="font-semibold text-[#86EFAC]">{removed}</span> {removed === 1 ? "line" : "lines"} removed
+          <span className="font-semibold text-[#10b981]">{removed}</span> {removed === 1 ? "line" : "lines"} removed
         </p>
         <button
           type="button"
           onClick={copyOutput}
           disabled={!output}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#86EFAC] px-5 py-3 text-sm font-bold text-[#101210] transition-colors hover:bg-[#A7F3C0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#86EFAC] disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#10b981] px-5 py-3 text-sm font-bold text-[#07090E] transition-colors hover:bg-[#A7F3C0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#10b981] disabled:cursor-not-allowed disabled:opacity-40"
         >
           {copied ? <Check size={17} /> : <Copy size={17} />}
           {copied ? "Copied" : "Copy output"}

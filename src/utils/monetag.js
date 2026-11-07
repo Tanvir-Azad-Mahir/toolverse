@@ -47,7 +47,7 @@ export const triggerAdWithFrequency = (callback, options = {}) => {
 
     // Default fallback if conditions aren't met or ad script isn't active
     callback?.();
-  } catch (err) {
+  } catch {
     // Fail-safe execution
     callback?.();
   }

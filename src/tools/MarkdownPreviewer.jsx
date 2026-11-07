@@ -1,10 +1,10 @@
 import { useState } from "react";
 
 const editorClass =
-  "mt-2 min-h-[350px] w-full resize-y rounded-xl border border-[#304038] bg-[#101210] px-4 py-3 font-mono text-sm leading-7 text-[#F0FDF4] outline-none transition placeholder:text-[#74877D] focus:border-[#86EFAC]/60 focus-visible:ring-2 focus-visible:ring-[#86EFAC]/15";
+  "mt-2 min-h-[350px] w-full resize-y rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#07090E] px-4 py-3 font-mono text-sm leading-7 text-[#F0FDF4] outline-none transition placeholder:text-[#74877D] focus:border-[#10b981]/60 focus-visible:ring-2 focus-visible:ring-[#10b981]/15";
 
 const previewClass =
-  "min-h-[350px] space-y-2 break-words rounded-xl border border-[#304038] bg-[#171F1A] p-4 text-sm leading-7 text-[#DCE9DE]";
+  "min-h-[350px] space-y-2 break-words rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#0D111A] p-4 text-sm leading-7 text-[#DCE9DE]";
 
 function inlineMd(text) {
   return text
@@ -15,7 +15,7 @@ function inlineMd(text) {
       }
       if (part.startsWith("`") && part.endsWith("`")) {
         return (
-          <code key={index} className="rounded bg-[#304038] px-1 text-[#BBF7D0]">
+          <code key={index} className="rounded bg-[rgba(255,255,255,0.1)] px-1 text-[#34d399]">
             {part.slice(1, -1)}
           </code>
         );
@@ -28,7 +28,7 @@ function inlineMd(text) {
         return (
           <a
             key={index}
-            className="text-[#86EFAC] underline underline-offset-2 hover:text-[#BBF7D0]"
+            className="text-[#10b981] underline underline-offset-2 hover:text-[#34d399]"
             href={link[2]}
             target="_blank"
             rel="noopener noreferrer"
@@ -51,7 +51,7 @@ export default function MarkdownPreviewer() {
     <div className="space-y-5">
       <div>
         <h2 className="text-xl font-bold text-[#F0FDF4]">Markdown Previewer</h2>
-        <p className="mt-2 text-sm text-[#94A3A0]">
+        <p className="mt-2 text-sm text-[#94a3b8]">
           Write Markdown and preview the formatted text instantly.
         </p>
       </div>
@@ -85,7 +85,7 @@ export default function MarkdownPreviewer() {
               }
               if (line.startsWith("> ")) {
                 return (
-                  <blockquote key={index} className="border-l-2 border-[#86EFAC] pl-3 text-[#AFC1B5]">
+                  <blockquote key={index} className="border-l-2 border-[#10b981] pl-3 text-[#AFC1B5]">
                     {inlineMd(line.slice(2))}
                   </blockquote>
                 );
@@ -96,7 +96,7 @@ export default function MarkdownPreviewer() {
         </div>
       </div>
 
-      <p className="text-xs leading-6 text-[#94A3A0]">
+      <p className="text-xs leading-6 text-[#94a3b8]">
         Supports common headings, emphasis, links, inline code, lists, and quotes.
         HTML is rendered as text, not executed.
       </p>

@@ -1,22 +1,53 @@
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
+  ArrowUp,
   ArrowUpRight,
   ChevronRight,
-  GitBranch,
   Heart,
   Mail,
   Menu,
+  Search,
   ShieldCheck,
-  Sparkles,
+  Wrench,
   X,
 } from "lucide-react";
 
+function GithubIcon({ className = "", size = 16 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+      <path d="M9 18c-4.51 2-5-2-7-2" />
+    </svg>
+  );
+}
+
 const navLinks = [
-  { label: "Explore tools", anchor: "tools" },
-  { label: "Why ToolVerse", anchor: "features" },
+  { label: "Tools", anchor: "tools" },
+  { label: "Architecture", anchor: "features" },
+  { label: "How It Works", anchor: "how-it-works" },
   { label: "About", anchor: "about" },
-  { label: "Contact", anchor: "contact" },
+  { label: "Feedback", anchor: "contact" },
+];
+
+const popularShortcuts = [
+  { name: "Image Compressor", id: "compress" },
+  { name: "QR Code Generator", id: "qr" },
+  { name: "JSON Formatter", id: "json" },
+  { name: "Password Generator", id: "password" },
+  { name: "Word Counter", id: "words" },
+  { name: "UUID Generator", id: "uuid" },
 ];
 
 export default function SiteLayout({ children }) {
@@ -28,76 +59,301 @@ export default function SiteLayout({ children }) {
     return () => window.removeEventListener("hashchange", closeMenu);
   }, []);
 
+  function triggerPalette() {
+    window.dispatchEvent(new CustomEvent("toolverse:open-palette"));
+  }
+
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   return (
-    <div className="min-h-screen overflow-x-clip bg-[#101210] font-sans text-[#F0FDF4] selection:bg-[#86EFAC]/25">
+    <div className="min-h-screen overflow-x-clip bg-[#090A0F] font-sans text-slate-100 selection:bg-emerald-500/25 selection:text-white">
+      {/* Ambient background glows - subtle and premium */}
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(ellipse_at_50%_-25%,rgba(70,110,80,.12),transparent_55%)]"
+        className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(16,185,129,0.12),transparent_70%)]"
       />
+
       <div className="relative z-10 flex min-h-screen flex-col">
-        <header className="sticky top-0 z-50 border-b border-[#86EFAC]/10 bg-[#101210]/90 shadow-[0_8px_30px_rgba(0,0,0,.16)] backdrop-blur-xl">
-          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#86EFAC]/25 to-transparent" />
-          <div className="mx-auto flex h-[64px] max-w-7xl items-center justify-between gap-3 px-4 sm:h-[72px] sm:px-8 lg:px-10">
-            <a href="#" onClick={() => setMobileMenu(false)} className="group inline-flex min-w-0 shrink-0 items-center gap-2 sm:gap-3" aria-label="ToolVerse homepage">
-              <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#86EFAC]/20 bg-[#1B2420] transition-colors group-hover:border-[#86EFAC]/45">
-                <img src="/log2.png" className="h-8 w-8 object-contain" alt="" />
-              </span>
-              <span className="truncate text-base font-extrabold tracking-[-.055em] text-[#F0FDF4] sm:text-lg">toolverse<span className="text-[#86EFAC]">.</span></span>
+        {/* ================= HEADER ================= */}
+        <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#090A0F]/85 shadow-lg shadow-black/25 backdrop-blur-xl">
+          <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-8 lg:px-10">
+            {/* Logo */}
+            <a
+              href="#"
+              onClick={() => setMobileMenu(false)}
+              className="group inline-flex min-w-0 shrink-0 items-center gap-3"
+              aria-label="ToolVerse homepage"
+            >
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 via-teal-500 to-emerald-600 shadow-md shadow-emerald-500/20 ring-1 ring-white/20 transition-transform duration-200 group-hover:scale-105">
+                <Wrench className="h-5 w-5 text-[#041d14]" strokeWidth={2.5} />
+                <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-400 ring-2 ring-[#090A0F]">
+                  <span className="h-1.5 w-1.5 animate-ping rounded-full bg-emerald-100" />
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="flex items-center gap-2 text-lg font-black tracking-tight text-white">
+                  ToolVerse
+                  <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-400">
+                    v2.0
+                  </span>
+                </span>
+                <span className="-mt-1 text-[10px] font-medium tracking-wider uppercase text-slate-500">
+                  Client-side utility suite
+                </span>
+              </div>
             </a>
-            <nav aria-label="Main navigation" className="hidden items-center gap-6 text-xs font-semibold text-[#94A3A0] lg:flex">
+
+            {/* Desktop Nav */}
+            <nav
+              aria-label="Main navigation"
+              className="hidden items-center gap-1 rounded-full border border-white/[0.06] bg-white/[0.02] p-1 text-xs font-semibold text-slate-300 backdrop-blur-md md:flex"
+            >
               {navLinks.map(({ label, anchor }) => (
-                <a key={anchor} href={`#${anchor}`} onClick={() => setMobileMenu(false)} className="transition-colors hover:text-[#86EFAC] focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#86EFAC]">{label}</a>
+                <a
+                  key={anchor}
+                  href={`#${anchor}`}
+                  onClick={() => setMobileMenu(false)}
+                  className="rounded-full px-3.5 py-1.5 transition-colors hover:bg-white/[0.08] hover:text-white"
+                >
+                  {label}
+                </a>
               ))}
             </nav>
-            <a href="#tools" onClick={() => setMobileMenu(false)} className="hidden items-center gap-2 rounded-xl border border-[#86EFAC]/25 bg-[#86EFAC]/10 px-4 py-2.5 text-xs font-bold text-[#D9FBE3] transition-colors hover:border-[#86EFAC]/50 hover:bg-[#86EFAC]/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#86EFAC] lg:inline-flex">
-              Browse tools <ArrowRight size={16} />
-            </a>
-            <button type="button" onClick={() => setMobileMenu((value) => !value)} aria-label={mobileMenu ? "Close menu" : "Open menu"} aria-expanded={mobileMenu} aria-controls="mobile-site-menu" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 text-[#F0FDF4] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#86EFAC] lg:hidden">
-              {mobileMenu ? <X size={20} /> : <Menu size={20} />}
-            </button>
+
+            {/* Header Right Actions */}
+            <div className="hidden items-center gap-2.5 sm:flex">
+              {/* Quick Search trigger */}
+              <button
+                type="button"
+                onClick={triggerPalette}
+                className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-slate-400 transition-all hover:border-emerald-500/40 hover:bg-white/[0.07] hover:text-white"
+                title="Search tools (⌘K)"
+              >
+                <Search size={14} className="text-emerald-400" />
+                <span>Search tools</span>
+                <kbd className="rounded border border-white/10 bg-white/[0.08] px-1.5 py-0.5 font-mono text-[10px] text-slate-300">
+                  ⌘K
+                </kbd>
+              </button>
+
+              {/* GitHub Link */}
+              <a
+                href="https://github.com/Tanvir-Azad-Mahir/toolverse"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-slate-400 transition-colors hover:border-white/20 hover:text-white"
+                aria-label="View source on GitHub"
+              >
+                <GithubIcon size={16} />
+              </a>
+
+              {/* Explore CTA */}
+              <a
+                href="#tools"
+                onClick={() => setMobileMenu(false)}
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-xs font-bold text-[#022c22] shadow-sm shadow-emerald-500/30 transition-all hover:bg-emerald-400 hover:shadow-emerald-500/40"
+              >
+                Browse Tools <ArrowRight size={14} />
+              </a>
+            </div>
+
+            {/* Mobile menu trigger */}
+            <div className="flex items-center gap-2 sm:hidden">
+              <button
+                type="button"
+                onClick={triggerPalette}
+                aria-label="Open search"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-slate-300"
+              >
+                <Search size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobileMenu((value) => !value)}
+                aria-label={mobileMenu ? "Close menu" : "Open menu"}
+                aria-expanded={mobileMenu}
+                aria-controls="mobile-site-menu"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-white"
+              >
+                {mobileMenu ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            </div>
           </div>
+
+          {/* Mobile dropdown */}
           {mobileMenu && (
-            <nav id="mobile-site-menu" aria-label="Mobile navigation" className="flex max-h-[calc(100dvh-64px)] flex-col gap-1 overflow-y-auto border-t border-white/10 bg-[#171D19] px-4 py-3 lg:hidden">
-              {navLinks.map(({ label, anchor }) => (
-                <a key={anchor} href={`#${anchor}`} onClick={() => setMobileMenu(false)} className="flex min-h-11 items-center rounded-lg px-3 py-3 text-sm text-[#D4DED7] hover:bg-[#86EFAC]/10 hover:text-[#86EFAC] focus-visible:outline-2 focus-visible:outline-[#86EFAC]">{label}</a>
-              ))}
-            </nav>
+            <div
+              id="mobile-site-menu"
+              className="border-t border-white/10 bg-[#0c1018] px-4 py-4 sm:hidden"
+            >
+              <div className="flex flex-col gap-1">
+                {navLinks.map(({ label, anchor }) => (
+                  <a
+                    key={anchor}
+                    href={`#${anchor}`}
+                    onClick={() => setMobileMenu(false)}
+                    className="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-slate-200 transition-colors hover:bg-emerald-500/10 hover:text-emerald-400"
+                  >
+                    {label}
+                  </a>
+                ))}
+              </div>
+              <div className="mt-4 flex flex-col gap-2 border-t border-white/10 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenu(false);
+                    triggerPalette();
+                  }}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] py-2.5 text-xs font-semibold text-slate-200"
+                >
+                  <Search size={15} /> Search tools (⌘K)
+                </button>
+                <a
+                  href="https://github.com/Tanvir-Azad-Mahir/toolverse"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] py-2.5 text-xs font-semibold text-slate-400"
+                >
+                  <GithubIcon size={15} /> Star on GitHub
+                </a>
+              </div>
+            </div>
           )}
         </header>
 
+        {/* Content */}
         {children}
 
-        <footer className="relative mt-auto overflow-hidden border-t border-[#86EFAC]/15 bg-[#131815]">
-          <div aria-hidden="true" className="pointer-events-none absolute -left-32 -top-28 h-80 w-80 rounded-full bg-[#86EFAC]/[0.035] blur-[95px]" />
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#86EFAC]/25 to-transparent" />
-          <div className="relative mx-auto max-w-7xl px-5 pb-10 pt-14 sm:px-8 lg:px-10">
-            <div className="grid gap-10 md:grid-cols-[1.25fr_.8fr_1fr] lg:gap-14">
-              <div>
-                <a href="#" onClick={() => setMobileMenu(false)} className="inline-flex items-center gap-3 text-lg font-extrabold tracking-tight text-[#F0FDF4]">
-                  <span className="grid h-11 w-11 place-items-center rounded-xl border border-[#86EFAC]/20 bg-[#1B2420]"><img src="/log2.png" alt="" className="h-8 w-8 object-contain" /></span>
-                  toolverse<span className="-ml-3 text-[#86EFAC]">.</span>
+        {/* ================= FOOTER ================= */}
+        <footer className="relative mt-auto border-t border-white/[0.08] bg-[#07090E]">
+          <div className="mx-auto max-w-7xl px-5 pb-12 pt-16 sm:px-8 lg:px-10">
+            <div className="grid gap-10 md:grid-cols-4 lg:gap-12">
+              {/* Col 1: Brand & Promise */}
+              <div className="md:col-span-1">
+                <a
+                  href="#"
+                  className="inline-flex items-center gap-2.5 text-lg font-black tracking-tight text-white"
+                >
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 shadow-md">
+                    <Wrench className="h-4 w-4 text-[#041d14]" strokeWidth={2.5} />
+                  </div>
+                  <span>ToolVerse</span>
                 </a>
-                <p className="mt-5 max-w-xs text-sm leading-7 text-[#94A3A0]">Small tools. Big convenience. A growing collection of free browser-based utilities for your everyday digital tasks.</p>
-                <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#86EFAC]/15 bg-[#86EFAC]/[.06] px-3 py-1.5 text-[11px] font-medium text-[#A7F3BF]"><ShieldCheck size={14} /> Free to use. No signup required.</div>
+                <p className="mt-4 text-xs leading-relaxed text-slate-400">
+                  High-speed, browser-based multi-tools for developers, designers, and creators.
+                  100% private with zero server transmission.
+                </p>
+                <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/[0.06] px-3 py-1.5 text-[11px] font-medium text-emerald-300">
+                  <ShieldCheck size={14} /> Zero Server Storage
+                </div>
               </div>
+
+              {/* Col 2: Popular Tools */}
               <div>
-                <h3 className="mb-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[.2em] text-[#F0FDF4]"><Sparkles size={15} className="text-[#86EFAC]" /> Explore</h3>
-                <div className="flex flex-col items-start gap-3">
-                  {navLinks.map(({ label, anchor }) => (
-                    <a key={anchor} href={`#${anchor}`} onClick={() => setMobileMenu(false)} className="group inline-flex items-center gap-1 text-sm text-[#94A3A0] transition-colors hover:text-[#86EFAC]">{label} <ChevronRight size={13} className="opacity-0 transition-opacity group-hover:opacity-100" /></a>
+                <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-white">
+                  Popular Tools
+                </h3>
+                <div className="flex flex-col gap-2.5">
+                  {popularShortcuts.map(({ name, id }) => (
+                    <a
+                      key={id}
+                      href={`#${id}`}
+                      className="text-xs text-slate-400 transition-colors hover:text-emerald-400"
+                    >
+                      {name}
+                    </a>
                   ))}
                 </div>
               </div>
+
+              {/* Col 3: Navigation */}
               <div>
-                <h3 className="mb-5 text-xs font-bold uppercase tracking-[.2em] text-[#F0FDF4]">Suggestions welcome</h3>
-                <p className="max-w-sm text-sm leading-7 text-[#94A3A0]">Have an idea, found a bug, or want to suggest an improvement? Feel free to contact me.</p>
-                <a href="mailto:galvoid.tech@gmail.com?subject=ToolVerse%20Feedback" className="mt-5 inline-flex max-w-full items-center gap-2 break-all rounded-xl border border-[#86EFAC]/20 bg-[#86EFAC]/[.07] px-3 py-3 text-xs font-semibold text-[#C6F6D5] transition-colors hover:border-[#86EFAC]/45 hover:bg-[#86EFAC]/[.12]"><Mail size={16} className="shrink-0" /> galvoid.tech@gmail.com <ArrowUpRight size={14} className="shrink-0" /></a>
-                <a href="https://github.com/Tanvir-Azad-Mahir" target="_blank" rel="noopener noreferrer" className="mt-4 flex items-center gap-2 text-xs font-medium text-[#94A3A0] transition-colors hover:text-[#86EFAC]"><GitBranch size={16} /> View developer profile <ArrowUpRight size={14} /></a>
+                <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-white">
+                  Navigation
+                </h3>
+                <div className="flex flex-col gap-2.5">
+                  {navLinks.map(({ label, anchor }) => (
+                    <a
+                      key={anchor}
+                      href={`#${anchor}`}
+                      className="group inline-flex items-center gap-1.5 text-xs text-slate-400 transition-colors hover:text-emerald-400"
+                    >
+                      <span>{label}</span>
+                      <ChevronRight
+                        size={12}
+                        className="opacity-0 transition-opacity group-hover:opacity-100"
+                      />
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              {/* Col 4: Contact & Open Source */}
+              <div>
+                <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-white">
+                  Connect & Contribute
+                </h3>
+                <p className="text-xs leading-relaxed text-slate-400">
+                  Have a suggestion or tool idea? ToolVerse is continually updated with new utilities.
+                </p>
+                <div className="mt-4 flex flex-col gap-2.5">
+                  <a
+                    href="mailto:galvoid.tech@gmail.com?subject=ToolVerse%20Feedback"
+                    className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-xs font-medium text-slate-200 transition-colors hover:border-emerald-500/30 hover:bg-emerald-500/[0.06] hover:text-white"
+                  >
+                    <Mail size={14} className="text-emerald-400" />
+                    <span>galvoid.tech@gmail.com</span>
+                  </a>
+                  <a
+                    href="https://github.com/Tanvir-Azad-Mahir/toolverse"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-xs font-medium text-slate-200 transition-colors hover:border-white/20 hover:text-white"
+                  >
+                    <GithubIcon size={14} className="text-slate-400" />
+                    <span>GitHub Repository</span>
+                    <ArrowUpRight size={12} className="ml-auto text-slate-500" />
+                  </a>
+                </div>
               </div>
             </div>
-            <div className="mt-12 flex flex-col gap-4 border-t border-white/10 pt-7 text-xs text-[#94A3A0] sm:flex-row sm:items-center sm:justify-between">
-              <span>© {new Date().getFullYear()} ToolVerse. All rights reserved.</span>
-              <span className="inline-flex flex-wrap items-center gap-1.5">Developed with <Heart size={13} className="fill-[#86EFAC]/25 text-[#86EFAC]" /> by <a href="https://github.com/Tanvir-Azad-Mahir" target="_blank" rel="noopener noreferrer" className="font-bold text-[#86EFAC] underline-offset-4 transition-colors hover:text-white hover:underline">Tanvir Azad Mahir</a><ArrowUpRight size={13} /></span>
+
+            {/* Sub-footer */}
+            <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/[0.06] pt-8 text-xs text-slate-500 sm:flex-row">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-400">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  All 22 Tools Operational
+                </span>
+                <span>© {new Date().getFullYear()} ToolVerse.</span>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <span className="inline-flex items-center gap-1.5">
+                  Crafted with{" "}
+                  <Heart size={12} className="fill-emerald-400/30 text-emerald-400" /> by{" "}
+                  <a
+                    href="https://github.com/Tanvir-Azad-Mahir"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold text-slate-300 transition-colors hover:text-emerald-400"
+                  >
+                    Tanvir Azad Mahir
+                  </a>
+                </span>
+                <button
+                  type="button"
+                  onClick={scrollToTop}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.03] text-slate-400 transition-colors hover:border-white/20 hover:text-white"
+                  title="Back to top"
+                  aria-label="Back to top"
+                >
+                  <ArrowUp size={14} />
+                </button>
+              </div>
             </div>
           </div>
         </footer>

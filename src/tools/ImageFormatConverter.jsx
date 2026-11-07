@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Download, Image as ImageIcon, AlertCircle } from "lucide-react";
 
 const fieldClass =
-  "mt-2 w-full min-w-0 rounded-xl border border-[#34453A] bg-[#101712] px-4 py-3 text-sm text-[#F0FDF4] outline-none transition-colors focus:border-[#86EFAC]/60 focus-visible:ring-2 focus-visible:ring-[#86EFAC]/15 file:mr-3 file:rounded-lg file:border-0 file:bg-[#273A2C] file:px-3 file:py-2 file:text-xs file:font-semibold file:text-[#C9F5D6]";
+  "mt-2 w-full min-w-0 rounded-xl border border-[#34453A] bg-[#101712] px-4 py-3 text-sm text-[#F0FDF4] outline-none transition-colors focus:border-[#10b981]/60 focus-visible:ring-2 focus-visible:ring-[#10b981]/15 file:mr-3 file:rounded-lg file:border-0 file:bg-[#273A2C] file:px-3 file:py-2 file:text-xs file:font-semibold file:text-[#C9F5D6]";
 
 const MAX_PIXELS = 80_000_000;
 const FORMAT_EXTENSIONS = {
@@ -87,7 +87,7 @@ export default function ImageFormatConverter() {
     <div className="space-y-7 text-[#F0FDF4]">
       <div>
         <h2 className="flex items-center gap-2 text-lg font-bold sm:text-xl">
-          <ImageIcon size={22} className="text-[#86EFAC]" />
+          <ImageIcon size={22} className="text-[#10b981]" />
           Image Format Converter
         </h2>
         <p className="mt-2 text-sm leading-6 text-[#A8B8AC]">
@@ -95,7 +95,7 @@ export default function ImageFormatConverter() {
         </p>
       </div>
 
-      <div className="space-y-5 rounded-2xl border border-[#34453A] bg-[#171F1A] p-4 sm:p-6">
+      <div className="space-y-5 rounded-2xl border border-[#34453A] bg-[#0D111A] p-4 sm:p-6">
         <label className="block text-sm font-medium text-[#DCEBDD]">
           Choose image
           <input
@@ -132,7 +132,7 @@ export default function ImageFormatConverter() {
           <label className="block text-sm font-medium text-[#DCEBDD]">
             Quality: {Math.round(quality * 100)}%
             <input
-              className="mt-3 w-full accent-[#86EFAC]"
+              className="mt-3 w-full accent-[#10b981]"
               type="range"
               min="0.1"
               max="1"
@@ -163,7 +163,7 @@ export default function ImageFormatConverter() {
         type="button"
         onClick={convert}
         disabled={!file || busy}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#86EFAC] px-5 py-3.5 text-sm font-bold text-[#101210] transition-colors hover:bg-[#A7F3C0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#86EFAC] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#10b981] px-5 py-3.5 text-sm font-bold text-[#07090E] transition-colors hover:bg-[#A7F3C0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#10b981] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
       >
         <Download size={17} />
         {busy ? "Converting..." : "Convert & Download"}

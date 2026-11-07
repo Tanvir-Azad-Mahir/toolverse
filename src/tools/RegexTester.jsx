@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 
 const inputClass =
-  "w-full rounded-xl border border-[#304038] bg-[#101210] px-4 py-3 font-mono text-sm text-[#F0FDF4] outline-none transition placeholder:text-[#71857A] focus:border-[#86EFAC]/60 focus:ring-2 focus:ring-[#86EFAC]/10";
+  "w-full rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#07090E] px-4 py-3 font-mono text-sm text-[#F0FDF4] outline-none transition placeholder:text-[#71857A] focus:border-[#10b981]/60 focus:ring-2 focus:ring-[#10b981]/10";
 
 const panelClass =
-  "rounded-xl border border-[#304038] bg-[#171F1A] p-4 text-sm text-[#D5EBDD]";
+  "rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#0D111A] p-4 text-sm text-[#D5EBDD]";
 
 export default function RegexTester() {
   const [pattern, setPattern] = useState("\\b\\w+@\\w+\\.\\w+\\b");
@@ -32,7 +32,7 @@ export default function RegexTester() {
       chunks.push(
         <mark
           key={index}
-          className="rounded bg-[#86EFAC]/20 px-0.5 text-[#B6F7CE]"
+          className="rounded bg-[#10b981]/20 px-0.5 text-[#B6F7CE]"
         >
           {match[0] || "⟨empty⟩"}
         </mark>
@@ -48,7 +48,7 @@ export default function RegexTester() {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold text-[#F0FDF4]">Regex Tester</h2>
-        <p className="mt-2 text-sm text-[#94A3A0]">
+        <p className="mt-2 text-sm text-[#94a3b8]">
           Test regular expressions and inspect matches in real time.
         </p>
       </div>
@@ -91,7 +91,7 @@ export default function RegexTester() {
         </p>
       ) : (
         <div className="space-y-4">
-          <p aria-live="polite" className="text-sm font-medium text-[#86EFAC]">
+          <p aria-live="polite" className="text-sm font-medium text-[#10b981]">
             {data.matches.length} match(es)
             {data.matches.length === 500 ? " (first 500)" : ""}
           </p>
@@ -100,7 +100,7 @@ export default function RegexTester() {
             {highlightedText}
           </div>
 
-          <div className="space-y-2 text-sm text-[#94A3A0]">
+          <div className="space-y-2 text-sm text-[#94a3b8]">
             {data.matches.slice(0, 20).map((match, index) => (
               <p key={index} className="break-words font-mono text-xs leading-6">
                 #{index + 1} at {match.index}: {JSON.stringify(match[0])}
