@@ -828,6 +828,38 @@ html.anim.go .ctas .btn-ghost {
   animation: pillIn .70s var(--e-reveal) .97s both;
 }
 
+html.scroll-reveal-ready [data-reveal] {
+  opacity: 0;
+  translate: 0 22px;
+  scale: .99;
+  transition:
+    opacity .65s var(--e-reveal),
+    translate .65s var(--e-reveal),
+    scale .65s var(--e-reveal);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+html.scroll-reveal-ready [data-reveal].is-visible {
+  opacity: 1;
+  translate: 0;
+  scale: 1;
+}
+
+@keyframes faqAnswerIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.faq-answer {
+  animation: faqAnswerIn .24s var(--e-soft) both;
+}
+
 @media (max-width: 552px) {
   html.anim.go .sub {
     animation-name: subInFlat;
@@ -844,6 +876,12 @@ html.anim.go .ctas .btn-ghost {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html.scroll-reveal-ready [data-reveal] {
+    opacity: 1;
+    translate: 0;
+    scale: 1;
+    transition: none;
+  }
   html.anim .ln {
     overflow: visible;
     padding-top: 0;

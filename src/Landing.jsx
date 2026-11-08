@@ -344,6 +344,36 @@ export default function Landing({ onOpenTool }) {
     [filtered, safePage]
   );
 
+  useEffect(() => {
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      !("IntersectionObserver" in window)
+    ) {
+      return;
+    }
+
+    const root = document.documentElement;
+    root.classList.add("scroll-reveal-ready");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -32px 0px" }
+    );
+
+    document.querySelectorAll("[data-reveal]").forEach((element) => observer.observe(element));
+
+    return () => {
+      observer.disconnect();
+      root.classList.remove("scroll-reveal-ready");
+    };
+  }, [paginatedTools, viewMode]);
+
   function goToPage(page) {
     const nextPage = Math.max(1, Math.min(totalPages, page));
     setCurrentPage(nextPage);
@@ -641,7 +671,7 @@ export default function Landing({ onOpenTool }) {
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-8 lg:px-10">
           {/* Prominent Search Bar & Quick Jump */}
-          <div role="search" className="relative z-10 mx-auto mb-12 max-w-2xl">
+          <div role="search" data-reveal className="relative z-10 mx-auto mb-12 max-w-2xl">
             <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-black/55 p-2 shadow-2xl shadow-black/60 ring-1 ring-white/5 backdrop-blur-xl transition-all focus-within:border-emerald-500/60 focus-within:ring-2 focus-within:ring-emerald-500/20 sm:p-2.5">
               <Search size={20} className="ml-3 shrink-0 text-slate-400" />
               <input
@@ -702,7 +732,7 @@ export default function Landing({ onOpenTool }) {
           </div>
 
           {/* ================= INTERACTIVE HERO PLAYGROUND ================= */}
-          <div className="mx-auto mb-16 max-w-3xl rounded-2xl border border-white/10 bg-black/45 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-6">
+          <div data-reveal className="mx-auto mb-16 max-w-3xl rounded-2xl border border-white/10 bg-black/45 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
                 <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -1093,7 +1123,7 @@ export default function Landing({ onOpenTool }) {
               id="tool-results"
               className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
             >
-              {paginatedTools.map((tool) => {
+              {paginatedTools.map((tool, index) => {
                 const Icon = tool.icon;
                 const isFav = favoriteSet.has(String(tool.id));
                 const meta = categoryMeta[tool.category] || {
@@ -1104,6 +1134,8 @@ export default function Landing({ onOpenTool }) {
                 return (
                   <div
                     key={tool.id}
+                    data-reveal
+                    style={{ "--reveal-delay": `${(index % 3) * 55}ms` }}
                     onClick={() => openTool(tool.id)}
                     className="group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:border-emerald-500/40 hover:bg-emerald-500/[0.045] hover:shadow-2xl hover:shadow-emerald-500/10"
                   >
@@ -1182,7 +1214,7 @@ export default function Landing({ onOpenTool }) {
           {/* ================= LIST VIEW ================= */}
           {viewMode === "list" && (
             <div id="tool-results" className="flex flex-col gap-2">
-              {paginatedTools.map((tool) => {
+              {paginatedTools.map((tool, index) => {
                 const Icon = tool.icon;
                 const isFav = favoriteSet.has(String(tool.id));
                 const meta = categoryMeta[tool.category] || {
@@ -1193,6 +1225,8 @@ export default function Landing({ onOpenTool }) {
                 return (
                   <div
                     key={tool.id}
+                    data-reveal
+                    style={{ "--reveal-delay": `${Math.min(index, 6) * 35}ms` }}
                     onClick={() => openTool(tool.id)}
                     className="group flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-white/[0.08] bg-white/[0.025] px-5 py-3.5 shadow-sm transition-all hover:border-emerald-500/40 hover:bg-emerald-500/[0.045]"
                   >
@@ -1329,7 +1363,7 @@ export default function Landing({ onOpenTool }) {
             </p>
           </div>
 
-          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div data-reveal className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <div className="group rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6 shadow-lg shadow-black/20 backdrop-blur-xl transition-all hover:border-emerald-500/40 hover:bg-emerald-500/[0.045]">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
                 <ShieldCheck size={22} />
@@ -1400,7 +1434,7 @@ export default function Landing({ onOpenTool }) {
             </a>
           </div>
 
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <div data-reveal className="mt-12 grid gap-6 md:grid-cols-3">
             <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-xl">
               <span className="font-mono text-3xl font-black text-emerald-400/30">01</span>
               <h3 className="mt-4 text-base font-bold text-white">Select Your Tool</h3>
@@ -1432,7 +1466,7 @@ export default function Landing({ onOpenTool }) {
 
       {/* ================= ABOUT / MISSION ================= */}
       <section id="about" className="scroll-mt-20 px-4 py-16 sm:px-8 sm:py-24">
-        <div className="mx-auto flex max-w-7xl flex-col gap-8 rounded-3xl border border-white/10 bg-white/[0.025] p-8 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-12 md:flex-row md:items-center">
+        <div data-reveal className="mx-auto flex max-w-7xl flex-col gap-8 rounded-3xl border border-white/10 bg-white/[0.025] p-8 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-12 md:flex-row md:items-center">
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
             <Cpu size={32} />
           </div>
@@ -1477,7 +1511,7 @@ export default function Landing({ onOpenTool }) {
             </p>
           </div>
 
-          <div className="mt-10 flex flex-col gap-3">
+          <div data-reveal className="mt-10 flex flex-col gap-3">
             {faqs.map(({ q, a }, idx) => {
               const isOpen = openFaq === idx;
               return (
@@ -1499,7 +1533,7 @@ export default function Landing({ onOpenTool }) {
                     />
                   </button>
                   {isOpen && (
-                    <div className="border-t border-white/[0.05] px-5 pb-5 pt-3 text-xs leading-relaxed text-slate-400">
+                    <div className="faq-answer border-t border-white/[0.05] px-5 pb-5 pt-3 text-xs leading-relaxed text-slate-400">
                       {a}
                     </div>
                   )}
@@ -1512,7 +1546,7 @@ export default function Landing({ onOpenTool }) {
 
       {/* ================= FEEDBACK & CONTACT ================= */}
       <section id="contact" className="scroll-mt-20 px-4 pb-24 pt-10 sm:px-8">
-        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-3xl border border-emerald-500/20 bg-white/[0.025] p-8 shadow-2xl shadow-emerald-500/[0.06] backdrop-blur-xl sm:p-12">
+        <div data-reveal className="relative mx-auto max-w-7xl overflow-hidden rounded-3xl border border-emerald-500/20 bg-white/[0.025] p-8 shadow-2xl shadow-emerald-500/[0.06] backdrop-blur-xl sm:p-12">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-emerald-500/10 blur-[80px]"
