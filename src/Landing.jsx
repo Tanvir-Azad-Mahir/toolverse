@@ -52,7 +52,7 @@ const VIEW_MODE_KEY = "toolverse:view_mode:v1";
 const MAX_RECENTS = 6;
 const TOOLS_PER_PAGE = 9;
 const HERO_VIDEO_SRC =
-  "https://res.cloudinary.com/p2x0mtjj/video/upload/v1794079110/gemini_generated_video_7981ac3c.mp4";
+  "https://res.cloudinary.com/p2x0mtjj/video/upload/f_auto,q_auto:eco,w_1280,c_limit/v1794079110/gemini_generated_video_7981ac3c.mp4";
 const HERO_POSTER_SRC =
   "https://res.cloudinary.com/p2x0mtjj/image/upload/v1794065968/Gemini_Generated_Image_cvftr6cvftr6cvft.jpg";
 const knownIds = new Set(tools.map((tool) => String(tool.id)));
@@ -132,8 +132,7 @@ export default function Landing({ onOpenTool }) {
   const searchRef = useRef(null);
   const paletteRef = useRef(null);
   const paletteDialogRef = useRef(null);
-  const videoARef = useRef(null);
-  const videoBRef = useRef(null);
+  const heroVideoRef = useRef(null);
   const [heroMenuOpen, setHeroMenuOpen] = useState(false);
 
   const query = search.trim().toLowerCase();
@@ -255,79 +254,24 @@ export default function Landing({ onOpenTool }) {
     return () => previous?.focus?.();
   }, [paletteOpen]);
 
-  // Crossfade the background videos while loading the second only shortly before needed.
+  // Keep the poster visible until the optimized background video starts playing.
   useEffect(() => {
-    const vA = videoARef.current;
-    const vB = videoBRef.current;
-    if (!vA || !vB) return;
+    const video = heroVideoRef.current;
+    if (!video) return;
 
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const saveData = Boolean(navigator.connection?.saveData);
     if (prefersReducedMotion || saveData) return;
 
-    const FADE = 0.9;
-    const PRELOAD_AHEAD = 4;
-    let cur = vA;
-    let nxt = vB;
-    let preloadStarted = false;
-    let switching = false;
-    let active = true;
-
-    function onTime() {
-      if (!cur.duration) return;
-      const timeRemaining = cur.duration - cur.currentTime;
-
-      if (!preloadStarted && timeRemaining <= FADE + PRELOAD_AHEAD) {
-        preloadStarted = true;
-        nxt.preload = "auto";
-        nxt.load();
-      }
-
-      if (timeRemaining > FADE || switching || nxt.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) {
-        return;
-      }
-
-      switching = true;
-      const previous = cur;
-      const next = nxt;
-      next.currentTime = 0;
-      const playback = next.play();
-
-      function finishSwitch() {
-        if (!active) return;
-        next.classList.add("is-active");
-        previous.classList.remove("is-active");
-        previous.removeEventListener("timeupdate", onTime);
-        cur = next;
-        nxt = previous;
-        preloadStarted = false;
-        switching = false;
-        cur.addEventListener("timeupdate", onTime);
-      }
-
-      if (playback && typeof playback.then === "function") {
-        playback.then(finishSwitch).catch(() => {
-          switching = false;
-        });
-      } else {
-        finishSwitch();
-      }
-    }
-
-    const p = cur.play();
+    const p = video.play();
     if (p && typeof p.then === "function") {
-      p.then(() => cur.classList.add("is-active")).catch(() => {});
+      p.then(() => video.classList.add("is-active")).catch(() => {});
     } else {
-      cur.classList.add("is-active");
+      video.classList.add("is-active");
     }
-    cur.addEventListener("timeupdate", onTime);
 
     return () => {
-      active = false;
-      vA.removeEventListener("timeupdate", onTime);
-      vB.removeEventListener("timeupdate", onTime);
-      vA.pause();
-      vB.pause();
+      video.pause();
     };
   }, []);
 
@@ -560,19 +504,8 @@ export default function Landing({ onOpenTool }) {
             decoding="async"
           />
           <video
-            ref={videoARef}
+            ref={heroVideoRef}
             className="bg-video"
-            id="bgVideoA"
-            src={HERO_VIDEO_SRC}
-            muted
-            playsInline
-            loop
-            preload="none"
-          />
-          <video
-            ref={videoBRef}
-            className="bg-video"
-            id="bgVideoB"
             src={HERO_VIDEO_SRC}
             muted
             playsInline
